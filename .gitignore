@@ -1,0 +1,42 @@
+# ===================================
+# 🔒 IGNORAR ARCHIVOS TEMPORALES Y COMPILADOS
+# ===================================
+
+# Archivos compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos de entorno virtual
+venv/
+.env
+
+# Base de datos local (opcional)
+db.sqlite3
+SIC_2025/db.sqlite3
+
+# Archivos temporales del sistema
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# Archivos de configuración del IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Archivos de caché o builds
+build/
+dist/
+*.egg-info/
+
+# Archivos estáticos generados (opcional)
+staticfiles/
+media/
