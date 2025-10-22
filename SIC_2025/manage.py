@@ -2,27 +2,7 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
-from pathlib import Path
-from dotenv import load_dotenv
 
-# BASE_DIR: carpeta raíz del proyecto
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Cargar archivo .env desde la raíz del repositorio
-load_dotenv(os.path.join(BASE_DIR.parent, '.env'))
-
-# Variables de entorno
-SECRET_KEY = os.getenv('SECRET_KEY')
-DEBUG = os.getenv('DEBUG') == 'True'
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
-
-# Base de datos por defecto (SQLite3)
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'SIC_2025.settings')
@@ -36,7 +16,5 @@ def main():
         ) from exc
     execute_from_command_line(sys.argv)
 
-
 if __name__ == '__main__':
     main()
-
