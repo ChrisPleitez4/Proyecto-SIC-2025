@@ -65,3 +65,13 @@ python manage.py migrate
 # 6. Ejecutar servidor
 python manage.py runserver
 ```
+
+### Flujo para tus compañeros
+Cuando un compañero baje cambios del repo:
+```bash
+git pull origin main
+```
+Luego, para actualizar su base de datos:
+```bash
+python manage.py migrate
+```
