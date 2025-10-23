@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cuentas'
 ]
 
 MIDDLEWARE = [
@@ -43,7 +44,7 @@ ROOT_URLCONF = 'SIC_2025.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],  # aquí puedes poner rutas de templates globales
+        'DIRS': [BASE_DIR / "templates"] ,# aquí puedes poner rutas de templates globales
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
