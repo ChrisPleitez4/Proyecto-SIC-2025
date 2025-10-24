@@ -29,3 +29,6 @@ def lista_cuentas(request):
         'form': form,
         'abrir_modal': abrir_modal
     })
+    
+def index(request):
+    return render(request, 'index.html')
