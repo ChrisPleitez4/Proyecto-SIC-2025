@@ -1,61 +1,65 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Registrar Puesto</title>
-    <style>
-        body { font-family: Arial; margin: 40px; }
-        input, button { margin: 5px; padding: 5px; }
-        table { border-collapse: collapse; margin-top: 15px; width: 60%; }
-        th, td { border: 1px solid #aaa; padding: 8px; text-align: left; }
-        h2, h3 { color: #333; }
-        .container { display: flex; gap: 40px; }
-    </style>
-</head>
-<body>
-    <h2>Registro de Puesto</h2>
+{% extends 'base.html' %}
+{% load static %}
 
-    <form method="POST">
-        {% csrf_token %}
+{% block content %}
+<link rel="stylesheet" href="{% static '/puestos.css' %}">
+
+<div class="form-container">
+  <h2>Registro de Puesto</h2>
+
+  <form method="POST">
+    {% csrf_token %}
+    <div class="form-columns">
+      <div class="column">
         <label>Nombre:</label>
-        <input type="text" name="nombre" required value="{{ nombre }}"><br>
+        <input type="text" name="nombre" required value="{{ nombre }}">
 
-        <label>Salario/Día:</label>
-        <input type="number" name="salario" step="0.01" required value="{{ salario }}"><br>
+        <label>Salario Nominal Diario:</label>
+        <input type="number" name="salario" step="0.01" required value="{{ salario }}">
 
-        <label>Eficiencia (0-1):</label>
-        <input type="number" name="eficiencia" step="0.01" min="0" max="1" required value="{{ eficiencia }}"><br>
+        <label>Eficiencia (0–1):</label>
+        <input type="number" name="eficiencia" step="0.01" min="0" max="1" required value="{{ eficiencia }}">
+      </div>
 
+      <div class="column info">
         <h3>Prestaciones</h3>
-        <p>Días Vacaciones: {{ dias_vacaciones }}</p>
-        <p>Recargo Vacaciones: {{ recargo_vacaciones }}</p>
-        <p>Días Aguinaldo: {{ dias_aguinaldo }}</p>
+        <p><strong>Días Vacaciones:</strong> {{ dias_vacaciones }}</p>
+        <p><strong>Recargo Vacaciones:</strong> {{ recargo_vacaciones }}</p>
+        <p><strong>Días Aguinaldo:</strong> {{ dias_aguinaldo }}</p>
+      </div>
+    </div>
 
-        <button type="submit" name="calcular">Calcular Costo Real</button>
-        <button type="submit" name="registrar">Registrar Puesto</button>
-    </form>
+    <div class="form-actions">
+      <button type="submit" name="calcular" class="btn calcular">Calcular Costo Real</button>
+      <button type="submit" name="registrar" class="btn guardar">Registrar Puesto</button>
+    </div>
+  </form>
 
-    {% if resultado %}
-        <h3>Detalle de Cálculo</h3>
-        <table>
-            <tr><th>Descripción</th><th>Monto</th></tr>
-            {% for k, v in resultado.items %}
-            <tr><td>{{ k }}</td><td>${{ v }}</td></tr>
-            {% endfor %}
-        </table>
-    {% endif %}
-
-    <h3>Puestos Actuales</h3>
-    <table>
-        <tr><th>Nombre Puesto</th><th>Salario Hora</th><th>Salario Día</th><th>Salario Mes</th></tr>
-        {% for p in puestos %}
-        <tr>
-            <td>{{ p.nombrePuesto }}</td>
-            <td>${{ p.salarioHoraPuesto|floatformat:2 }}</td>
-            <td>${{ p.salarioDiarioPuesto|floatformat:2 }}</td>
-            <td>${{ p.salarioMesPuesto|floatformat:2 }}</td>
-        </tr>
-        {% endfor %}
+  {% if resultado %}
+  <div class="result-section">
+    <h3>Detalle de Cálculo</h3>
+    <table class="styled-table">
+      <tr><th>Descripción</th><th>Monto</th></tr>
+      {% for k, v in resultado.items %}
+      <tr><td>{{ k }}</td><td>${{ v }}</td></tr>
+      {% endfor %}
     </table>
-</body>
-</html>
+  </div>
+  {% endif %}
+
+  <div class="puestos-section">
+    <h3>Puestos Actuales</h3>
+    <table class="styled-table">
+      <tr><th>Nombre</th><th>Salario por Hora</th><th>Salario por Día</th><th>Salario por Mes</th></tr>
+      {% for p in puestos %}
+      <tr>
+        <td>{{ p.nombrePuesto }}</td>
+        <td>${{ p.salarioHoraPuesto|floatformat:2 }}</td>
+        <td>${{ p.salarioDiarioPuesto|floatformat:2 }}</td>
+        <td>${{ p.salarioMesPuesto|floatformat:2 }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+{% endblock %}

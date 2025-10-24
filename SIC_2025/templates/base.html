@@ -75,7 +75,7 @@
             <a class="nav-link " href="#">Transacciones</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link " href="#">Puestos</a>
+            <a class="nav-link {% if request.path == '/puestos/' %}active{% endif %}" href="{% url 'registrar_puesto' %}">Puestos</a>
           </li>
           <li class="nav-item">
             <a class="nav-link {% if request.path == '/proyectos/registrar/' %}active{% endif %}" href="{% url 'Registrar_proyecto' %}"> Contabilidad de costos</a>

@@ -7,7 +7,7 @@ def registrar_puesto(request):
     recargo_vacaciones = 0.30
     dias_aguinaldo = 18
     seguro_social = 0.075
-    afp = 0.0775
+    afp = 0.0875
 
     # Valores iniciales
     nombre = ""
