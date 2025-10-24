@@ -66,12 +66,17 @@
       <div class="collapse navbar-collapse" id="menuNav">
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
             <li class="nav-item">
-            <a class="nav-link" href="#">Inicio</a>
+            <a class="nav-link {% if request.path == '/' %}active{% endif %} " href="{% url 'index' %}">Inicio</a>
           </li>
           <li class="nav-item">
             <a class="nav-link {% if request.path == '/cuentas/' %}active{% endif %}" href="{% url 'lista_cuentas' %}"> Catalogo de cuentas</a>
           </li>
-          
+          <li class="nav-item">
+            <a class="nav-link " href="#">Transacciones</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link " href="#">Puestos</a>
+          </li>
           <li class="nav-item">
             <a class="nav-link {% if request.path == '/proyecto/registrar/' %}active{% endif %}" href="{% url 'Registrar_proyecto' %}"> Contabilidad de costos</a>
 
