@@ -1,0 +1,589 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}Método de Estimación UCP - Completo{% endblock %}
+
+{% block content %}
+<style>
+    /* Estilos basados en tu tema de Catálogo de Cuentas (Integrados en el HTML) */
+    .pcu-container {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        margin-top: 20px;
+    }
+
+    .table-header {
+        font-weight: bold;
+        background-color: #37474f !important;
+        color: white;
+        text-align: center;
+        vertical-align: middle;
+        padding: 10px 12px;
+        border-left: 6px solid #a8bcc5;
+    }
+
+    .table-pcu {
+        margin-top: 15px;
+        border: 1px solid #a8bcc5;
+    }
+
+    .table-pcu th {
+        background-color: #546e7a;
+        color: white;
+        text-align: center;
+        border: 1px solid #a8bcc5;
+    }
+
+    .table-pcu td {
+        background-color: #f0f4f7;
+        text-align: center;
+        border: 1px solid #a8bcc5;
+        vertical-align: middle;
+    }
+
+    .table-pcu tfoot td {
+        background-color: #c2d1da;
+        font-weight: bold;
+        text-align: right;
+    }
+    
+    .table-pcu tfoot td:last-child {
+        text-align: center;
+    }
+
+    .btn-pcu-primary {
+        background-color: #37474f;
+        color: white;
+        border: none;
+    }
+    .btn-pcu-primary:hover {
+        background-color: #546e7a;
+        color: white;
+    }
+    .btn-pcu-danger {
+        background-color: #b0bec5;
+        color: #37474f;
+        border: 1px solid #37474f;
+    }
+    .btn-pcu-danger:hover {
+        background-color: #90a4ae;
+        color: #37474f;
+    }
+
+    /* Estilo para los selects que se generan en JS */
+    .table-pcu td select {
+        width: 100%;
+        box-sizing: border-box;
+        border: none;
+        padding: 6px 4px;
+        background-color: #e3edf2;
+        text-align: center;
+    }
+    
+    /* Estilo para el input de transacciones */
+    .table-pcu td input[type="number"] {
+        width: 100%;
+        box-sizing: border-box;
+        border: none;
+        padding: 6px 4px;
+        background-color: #e3edf2;
+        text-align: center;
+    }
+</style>
+
+<div class="container pcu-container">
+
+    <div class="py-3 text-center">
+        <h2 style="color: #37474f;">Método de Estimación de Costos "UCP"</h2>
+    </div>
+
+    <div class="row">
+        <div class="table-responsive">
+            <table id="actorsTable1" class="table table-bordered table-pcu table-sm">
+                <thead>
+                    <tr>
+                        <th colspan="5" class="table-header">
+                            Clasificación de casos de uso sin ajuste "Enfoque transaccional" (PCU)
+                        </th>
+                    </tr>
+                    <tr>
+                        <th style="width: 30%;">Caso de Uso</th>
+                        <th style="width: 20%;">Transacciones</th>
+                        <th style="width: 20%;">Complejidad</th>
+                        <th style="width: 15%;">Peso</th>
+                        <th style="width: 15%;">Producto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4"><strong>Total Producto Casos de Uso (PCU)</strong></td> 
+                        <td id="totalProduct" style="background-color: #a8bcc5;">0</td>
+                    </tr>
+                </tfoot>
+            </table>
+            <div class="d-flex mb-3 gap-2">
+                <button class="btn btn-pcu-primary" onclick="addRow1()" title="Agregar Fila">
+                    <i class="fas fa-plus"></i> Agregar Caso de Uso
+                </button>
+                <button class="btn btn-pcu-danger" onclick="deleteLastRow1()" title="Eliminar Última Fila">
+                    <i class="fas fa-trash-alt"></i> Eliminar Caso de Uso
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="table-responsive">
+            <table id="actorsTable2" class="table table-bordered table-pcu table-sm">
+                <thead>
+                    <tr>
+                        <th colspan="4" class="table-header">
+                            Clasificación de actores sin ajuste (PA)
+                        </th>
+                    </tr>
+                    <tr>
+                        <th>Actores</th>
+                        <th>Tipo de actor</th>
+                        <th>Peso</th>
+                        <th>Producto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3"><strong>Total Producto Actores (PA)</strong></td>
+                        <td id="totalProduct2" style="background-color: #a8bcc5;">0</td>
+                    </tr>
+                </tfoot>
+            </table>
+            <div class="d-flex mb-3 gap-2">
+                <button class="btn btn-pcu-primary" onclick="addRow2()" title="Agregar Fila">
+                    <i class="fas fa-plus"></i> Agregar Actor
+                </button>
+                <button class="btn btn-pcu-danger" onclick="deleteLastRow2()" title="Eliminar Última Fila">
+                    <i class="fas fa-trash-alt"></i> Eliminar Actor
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="table-responsive">
+            <table id="uucpTable" class="table table-bordered table-pcu table-sm" style="table-layout: fixed;">
+                <thead>
+                    <tr>
+                        <th colspan="3" class="table-header">PA + PCU = UUCP (Unadjusted Use Case Points)</th>
+                    </tr>
+                    <tr>
+                        <th style="width: 33%;">Producto de Actores (PA)</th>
+                        <th style="width: 33%;">Producto de Casos de Uso (PCU)</th>
+                        <th style="width: 34%; background-color: #a8bcc5 !important; color: #37474f !important;">UUCP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id="PA"></td>
+                        <td id="PCU"></td>
+                        <td id="uucp" style="font-weight: bold; background-color: #c2d1da;"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <hr class="my-4">
+
+    <div class="row mt-4">
+        <div class="table-responsive">
+            <table class="table table-bordered table-pcu table-sm">
+                <thead>
+                    <tr>
+                        <th colspan="5" class="table-header">Factores Técnicos "TF" (Technical Factors)</th>
+                    </tr>
+                    <tr>
+                        <th style="width: 10%;">Factor</th>
+                        <th style="width: 40%;">Descripción</th>
+                        <th style="width: 10%;">Peso</th>
+                        <th style="width: 20%;">Evaluación (0-5)</th>
+                        <th style="width: 20%;">Impacto (Peso &times; Evaluación)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><b>T1</b></td>
+                        <td style="text-align: left;">Sistema distribuido</td>
+                        <td>2</td>
+                        <td id="EvaT1"></td>
+                        <td id="ImT1"></td>
+                    </tr>
+                    <tr>
+                        <td><b>T2</b></td>
+                        <td style="text-align: left;">Objetivos de rendimiento</td>
+                        <td>1</td>
+                        <td id="EvaT2"></td>
+                        <td id="ImT2"></td>
+                    </tr>
+                    <tr>
+                        <td><b>T3</b></td>
+                        <td style="text-align: left;">Eficiencia de rendimiento</td>
+                        <td>1</td>
+                        <td id="EvaT3"></td>
+                        <td id="ImT3"></td>
+                    </tr>
+                    <tr>
+                        <td><b>T4</b></td>
+                        <td style="text-align: left;">Procesamiento complejo</td>
+                        <td>1</td>
+                        <td id="EvaT4"></td>
+                        <td id="ImT4"></td>
+                    </tr>
+                    <tr>
+                        <td><b>T5</b></td>
+                        <td style="text-align: left;">Código reutilizable</td>
+                        <td>1</td>
+                        <td id="EvaT5"></td>
+                        <td id="ImT5"></td>
+                    </tr>
+                    <tr>
+                        <td><b>T6</b></td>
+                        <td style="text-align: left;">Facilidad de instalación</td>
+                        <td>0.5</td>
+                        <td id="EvaT6"></td>
+                        <td id="ImT6"></td>
+                    </tr>
+                    <tr>
+                        <td><b>T7</b></td>
+                        <td style="text-align: left;">Facilidad de Uso</td>
+                        <td>0.5</td>
+                        <td id="EvaT7"></td>
+                        <td id="ImT7"></td>
+                    </tr>
+                    <tr>
+                        <td><b>T8</b></td>
+                        <td style="text-align: left;">Portable</td>
+                        <td>2</td>
+                        <td id="EvaT8"></td>
+                        <td id="ImT8"></td>
+                    </tr>
+                    <tr>
+                        <td><b>T9</b></td>
+                        <td style="text-align: left;">Facilidad de cambios</td>
+                        <td>1</td>
+                        <td id="EvaT9"></td>
+                        <td id="ImT9"></td>
+                    </tr>
+                    <tr>
+                        <td><b>T10</b></td>
+                        <td style="text-align: left;">Concurrencia de uso</td>
+                        <td>1</td>
+                        <td id="EvaT10"></td>
+                        <td id="ImT10"></td>
+                    </tr>
+                    <tr>
+                        <td><b>T11</b></td>
+                        <td style="text-align: left;">Seguridad</td>
+                        <td>1</td>
+                        <td id="EvaT11"></td>
+                        <td id="ImT11"></td>
+                    </tr>
+                    <tr>
+                        <td><b>T12</b></td>
+                        <td style="text-align: left;">Acceso para terceros</td>
+                        <td>1</td>
+                        <td id="EvaT12"></td>
+                        <td id="ImT12"></td>
+                    </tr>
+                    <tr>
+                        <td><b>T13</b></td>
+                        <td style="text-align: left;">Necesidad de entrenamiento</td>
+                        <td>1</td>
+                        <td id="EvaT13"></td>
+                        <td id="ImT13"></td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4"><strong>Total Factores Técnicos (TF)</strong></td>
+                        <td id="totalTF"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="table-responsive">
+            <table class="table table-bordered table-pcu table-sm">
+                <thead>
+                    <tr>
+                        <th colspan="3" class="table-header">Factores Técnicos de Complejidad "TCF"</th>
+                    </tr>
+                    <tr>
+                        <th colspan="3">TCF = 0.6 + (TF &times; 0.01)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id="tcf" colspan="3" style="font-weight: bold; background-color: #c2d1da;"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <hr class="my-4">
+
+    <div class="row mt-4">
+        <div class="table-responsive">
+            <table class="table table-bordered table-pcu table-sm">
+                <thead>
+                    <tr>
+                        <th colspan="5" class="table-header">Factores Ambientales "EF" (Environmental Factors)</th>
+                    </tr>
+                    <tr>
+                        <th style="width: 15%;">Factor</th>
+                        <th style="width: 35%;">Descripción</th>
+                        <th style="width: 10%;">Peso</th>
+                        <th style="width: 20%;">Evaluación (0-5)</th>
+                        <th style="width: 20%;">Impacto (Peso &times; Evaluación)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><b>E1</b></td>
+                        <td style="text-align: left;">Familiarización con el proceso de desarrollo</td>
+                        <td>1.5</td>
+                        <td id="EvaEf1"></td>
+                        <td id="ImEf1"></td>
+                    </tr>
+                    <tr>
+                        <td><b>E2</b></td>
+                        <td style="text-align: left;">Experiencia de aplicación</td>
+                        <td>0.5</td>
+                        <td id="EvaEf2"></td>
+                        <td id="ImEf2"></td>
+                    </tr>
+                    <tr>
+                        <td><b>E3</b></td>
+                        <td style="text-align: left;">Experiencia orientada a objetos</td>
+                        <td>1</td>
+                        <td id="EvaEf3"></td>
+                        <td id="ImEf3"></td>
+                    </tr>
+                    <tr>
+                        <td><b>E4</b></td>
+                        <td style="text-align: left;">Capacidad de analista líder</td>
+                        <td>0.5</td>
+                        <td id="EvaEf4"></td>
+                        <td id="ImEf4"></td>
+                    </tr>
+                    <tr>
+                        <td><b>E5</b></td>
+                        <td style="text-align: left;">Motivación</td>
+                        <td>0.5</td>
+                        <td id="EvaEf5"></td>
+                        <td id="ImEf5"></td>
+                    </tr>
+                    <tr>
+                        <td><b>E6</b></td>
+                        <td style="text-align: left;">Requisitos estables</td>
+                        <td>2</td>
+                        <td id="EvaEf6"></td>
+                        <td id="ImEf6"></td>
+                    </tr>
+                    <tr>
+                        <td><b>E7</b></td>
+                        <td style="text-align: left;">Personal a tiempo parcial</td>
+                        <td>-1</td>
+                        <td id="EvaEf7"></td>
+                        <td id="ImEf7"></td>
+                    </tr>
+                    <tr>
+                        <td><b>E8</b></td>
+                        <td style="text-align: left;">Dificultad del Lenguaje de Programación</td>
+                        <td>-1</td>
+                        <td id="EvaEf8"></td>
+                        <td id="ImEf8"></td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4"><strong>Total Impacto Ponderado EF (Para cálculo de FA)</strong></td> <td id="totalEf"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="table-responsive">
+            <table class="table table-bordered table-pcu table-sm">
+                <thead>
+                    <tr>
+                        <th colspan="3" class="table-header">Factor Ambiental "FA" (Environmental Factor)</th>
+                    </tr>
+                    <tr>
+                        <th colspan="3">FA = 1.4 + (-0.03 &times; Total Impacto Ponderado EF)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id="totalEF" colspan="3" style="font-weight: bold; background-color: #c2d1da;"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <hr class="my-4">
+
+    <div class="row mt-4">
+        <div class="table-responsive">
+            <table class="table table-bordered table-pcu table-sm">
+                <thead>
+                    <tr>
+                        <th colspan="4" class="table-header">Casos de Uso Ajustados "UCP" (Use Case Points)</th>
+                    </tr>
+                    <tr>
+                        <th colspan="4">UCP = UUCP &times; TCF &times; FA</th>
+                    </tr>
+                    <tr>
+                        <th>UUCP</th>
+                        <th>TCF</th>
+                        <th>FA</th>
+                        <th style="background-color: #a8bcc5 !important; color: #37474f !important;">UCP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id="ttuucp"></td>
+                        <td id="tttcf"></td>
+                        <td id="ttef"></td>
+                        <td id="ttucp" style="font-weight: bold; background-color: #c2d1da;"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <hr class="my-4">
+
+    <div class="row mt-4">
+        <div class="col-lg-5 col-md-12">
+            <div class="table-responsive">
+                <table class="table table-bordered table-pcu table-sm">
+                    <thead>
+                        <tr>
+                            <th colspan="2" class="table-header">Factor de Conversión Horas-Persona "CF" (Basado en Conteo EF)</th>
+                        </tr>
+                        <tr>
+                            <th>Horas-Persona</th>
+                            <th>Intervalo de Conteo EF</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>20</td>
+                            <td>Menor o igual a 2</td>
+                        </tr>
+                        <tr>
+                            <td>28</td>
+                            <td>Mayor a 2 y Menor o igual a 4</td>
+                        </tr>
+                        <tr>
+                            <td>36</td>
+                            <td>Mayor a 4</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="col-lg-7 col-md-12">
+            <div class="table-responsive">
+                <table class="table table-bordered table-pcu table-sm">
+                    <thead>
+                        <tr>
+                            <th colspan="3" class="table-header">Determinación de las horas totales o Esfuerzo "E"</th>
+                        </tr>
+                        <tr>
+                            <th colspan="3">E = CF &times; UCP</th>
+                        </tr>
+                        <tr>
+                            <th>CF</th>
+                            <th>UCP</th>
+                            <th style="background-color: #a8bcc5 !important; color: #37474f !important;">Esfuerzo (E)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="ttCF" style="font-weight: bold;">
+                                </td>
+                            <td id="tttUCP"></td>
+                            <td id="ttE" style="font-weight: bold; background-color: #c2d1da;"></td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="2"><strong>Total de horas</strong></td>
+                            <td id="tth"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><strong>Total de semanas (E / 40 horas)</strong></td>
+                            <td id="tts"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><strong>Total de meses (E / 160 horas)</strong></td>
+                            <td id="ttm"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="table-responsive">
+            <table class="table table-bordered table-pcu table-sm" style="max-width: 50%;">
+                <thead>
+                    <tr>
+                        <th colspan="2" class="table-header">Determinación de las Horas/Personas asignadas</th>
+                    </tr>
+                    <tr>
+                        <th colspan="2">E / Cantidad de empleados asignados = Horas/Persona</th>
+                    </tr>
+                    <tr>
+                        <th>Esfuerzo total (E)</th>
+                        <th>Empleados asignados</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id="eh"></td>
+                        <td id="em">
+                            </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td><strong>Total de horas por persona</strong></td>
+                        <td id="temh" style="background-color: #c2d1da;"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <button id="clearButton" type="reset" class="btn btn-pcu-danger mt-4 w-100" onclick="clearData()">Limpiar Todos los Datos</button>
+    
+</div>
+
+<script src="{% static 'js/calculadora-ucp.js' %}"></script>
+
+{% endblock %}

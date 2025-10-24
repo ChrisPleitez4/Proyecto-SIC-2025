@@ -73,7 +73,8 @@
           </li>
           
           <li class="nav-item">
-            <a class="nav-link" href="#">Contabilidad de costos</a>
+            <a class="nav-link {% if request.path == '/proyecto/registrar/' %}active{% endif %}" href="{% url 'Registrar_proyecto' %}"> Contabilidad de costos</a>
+
           </li>
           <li class="nav-item">
             <a class="nav-link" href="#">Libro Mayor</a>
