@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+
+  <!-- ===== ESTADO DE RESULTADOS ===== -->
+  <h3 class="text-center">TechXiliar S.A. de C.V</h3>
+  <h4 class="text-center">Estado de Resultados</h4>
+  <p class="text-center">Al {{ fecha }}</p>
+
+  <table class="table table-bordered mt-3">
+    <thead class="table-secondary">
+      <tr>
+        <th>Concepto</th>
+        <th class="text-end">Saldo ($)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="table-light"><td colspan="2"><strong>Ingresos</strong></td></tr>
+      {% for cuenta in ingresos %}
+        <tr>
+          <td>{{ cuenta.nombreCuenta }}</td>
+          <td class="text-end">{{ cuenta.haber|floatformat:2 }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="2" class="text-center">No hay ingresos registrados</td></tr>
+      {% endfor %}
+
+      <tr class="table-light"><td colspan="2"><strong>Gastos</strong></td></tr>
+      {% for cuenta in gastos %}
+        <tr>
+          <td>{{ cuenta.nombreCuenta }}</td>
+          <td class="text-end">{{ cuenta.debe|floatformat:2 }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="2" class="text-center">No hay gastos registrados</td></tr>
+      {% endfor %}
+
+      <tr class="fw-bold"><td>Total de Ingresos</td><td class="text-end">{{ total_ingresos|floatformat:2 }}</td></tr>
+      <tr class="fw-bold"><td>Total de Gastos</td><td class="text-end">{{ total_gastos|floatformat:2 }}</td></tr>
+      <tr><td>Utilidad Bruta</td><td class="text-end">{{ utilidad_bruta|floatformat:2 }}</td></tr>
+      <tr><td>Impuesto (13%)</td><td class="text-end">{{ impuesto|floatformat:2 }}</td></tr>
+      <tr class="table-success"><td>Utilidad Neta</td><td class="text-end">{{ utilidad_neta|floatformat:2 }}</td></tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <!-- ===== ESTADO DE CAPITAL ===== -->
+  <h4 class="text-center">Estado de Capital</h4>
+  <p class="text-center">Al {{ fecha }}</p>
+
+  <table class="table table-bordered mt-3">
+    <thead class="table-secondary">
+      <tr>
+        <th>Concepto</th>
+        <th class="text-end">Saldo ($)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Capital Social</td><td class="text-end">{{ capital_inicial|floatformat:2 }}</td></tr>
+      <tr><td>Utilidad Neta</td><td class="text-end">{{ utilidad_neta|floatformat:2 }}</td></tr>
+      <tr class="table-success fw-bold"><td>Capital Final</td><td class="text-end">{{ capital_final|floatformat:2 }}</td></tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <!-- ===== BALANCE GENERAL ===== -->
+  <h4 class="text-center">Balance General</h4>
+  <p class="text-center">Al {{ fecha }}</p>
+
+  <table class="table table-bordered mt-3">
+    <thead class="table-secondary">
+      <tr>
+        <th>Código</th>
+        <th>Cuenta</th>
+        <th class="text-end">Debe</th>
+        <th class="text-end">Haber</th>
+        <th class="text-end">Saldo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="table-light"><td colspan="5"><strong>Activos</strong></td></tr>
+      {% for cuenta in activos %}
+        <tr>
+          <td>{{ cuenta.codCuenta }}</td>
+          <td>{{ cuenta.nombreCuenta }}</td>
+          <td class="text-end">{{ cuenta.debe|floatformat:2 }}</td>
+          <td class="text-end">{{ cuenta.haber|floatformat:2 }}</td>
+          <td class="text-end">{{ cuenta.debe|floatformat:2|add:0|floatformat:2 }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="text-center">No hay activos registrados</td></tr>
+      {% endfor %}
+
+      <tr class="table-light"><td colspan="5"><strong>Pasivos</strong></td></tr>
+      {% for cuenta in pasivos %}
+        <tr>
+          <td>{{ cuenta.codCuenta }}</td>
+          <td>{{ cuenta.nombreCuenta }}</td>
+          <td class="text-end">{{ cuenta.debe|floatformat:2 }}</td>
+          <td class="text-end">{{ cuenta.haber|floatformat:2 }}</td>
+          <td class="text-end">{{ cuenta.haber|floatformat:2|add:0|floatformat:2 }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="text-center">No hay pasivos registrados</td></tr>
+      {% endfor %}
+
+      <tr class="table-light"><td colspan="5"><strong>Patrimonio</strong></td></tr>
+      {% for cuenta in patrimonio %}
+        <tr>
+          <td>{{ cuenta.codCuenta }}</td>
+          <td>{{ cuenta.nombreCuenta }}</td>
+          <td class="text-end">{{ cuenta.debe|floatformat:2 }}</td>
+          <td class="text-end">{{ cuenta.haber|floatformat:2 }}</td>
+          <td class="text-end">{{ cuenta.haber|floatformat:2|add:0|floatformat:2 }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="text-center">No hay patrimonio registrado</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

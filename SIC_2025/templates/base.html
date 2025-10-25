@@ -85,7 +85,7 @@
             <a class="nav-link" href="#">Libro Mayor</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Estados financieros</a>
+            <a class="nav-link {% if request.path == '/estados/' %}active{% endif %}" href="{% url 'estados_financieros' %}">Estados financieros</a>
           </li>
         </ul>
       </div>
