@@ -15,10 +15,10 @@
         <input type="text" name="nombre" required value="{{ nombre }}">
 
         <label>Salario Nominal Diario:</label>
-        <input type="number" name="salario" step="0.01" required value="{{ salario }}">
+        <input type="number" name="salario" step="0.01" min="0.01" required value="{{ salario }}" oninput="validarDecimales(this)">
 
         <label>Eficiencia (0–1):</label>
-        <input type="number" name="eficiencia" step="0.01" min="0" max="1" required value="{{ eficiencia }}">
+        <input type="number" name="eficiencia" step="0.01" min="0.01" max="1" required value="{{ eficiencia }}" oninput="validarDecimales(this)">
       </div>
 
       <div class="column info">
@@ -62,4 +62,16 @@
     </table>
   </div>
 </div>
+<script>
+function validarDecimales(input) {
+    // Limita a 2 decimales
+    const valor = input.value;
+    if (valor.includes('.')) {
+        const [entero, decimales] = valor.split('.');
+        if (decimales.length > 2) {
+            input.value = `${entero}.${decimales.slice(0, 2)}`;
+        }
+    }
+}
+</script>
 {% endblock %}
