@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'cuentas',
     'pcu',
     'estados',
+    'transacciones',
 ]
 
 MIDDLEWARE = [

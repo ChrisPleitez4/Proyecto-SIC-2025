@@ -5,7 +5,7 @@ import re
 
 class CuentaForm(forms.ModelForm):
     codCuenta = forms.CharField(
-        max_length=10,
+        max_length=4,
         label="Código de Cuenta",
         error_messages={
             'required': 'El código de cuenta es obligatorio.',
@@ -37,8 +37,8 @@ class CuentaForm(forms.ModelForm):
         
         if not cod.isdigit():
             raise forms.ValidationError("El código de cuenta debe contener solo números.")
-        if len(cod) > 4:
-            raise forms.ValidationError("El código de cuenta no puede tener más de 4 digitos numericos.")
+        if len(cod) != 4:
+            raise forms.ValidationError("El código de cuenta consta de 4 digitos numericos.")
         if cod and Cuenta.objects.filter(codCuenta=cod).exists():
             raise forms.ValidationError("Ya existe una cuenta con este código.")
         return cod

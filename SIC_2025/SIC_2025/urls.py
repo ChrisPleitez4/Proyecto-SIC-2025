@@ -24,4 +24,5 @@ urlpatterns = [
     path('proyectos/', include('pcu.urls')),
     path('estados/', include('estados.urls')),
     path('', views.index, name='index'),
+    path('transacciones/', include('transacciones.urls')),
 ]

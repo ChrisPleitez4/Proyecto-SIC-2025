@@ -72,7 +72,7 @@
             <a class="nav-link {% if request.path == '/cuentas/' %}active{% endif %}" href="{% url 'lista_cuentas' %}"> Catalogo de cuentas</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link " href="#">Transacciones</a>
+            <a class="nav-link {% if request.path == '/transacciones/' %}active{% endif %}" href="{% url 'transacciones' %}">Transacciones</a>
           </li>
           <li class="nav-item">
             <a class="nav-link {% if request.path == '/puestos/' %}active{% endif %}" href="{% url 'registrar_puesto' %}">Puestos</a>

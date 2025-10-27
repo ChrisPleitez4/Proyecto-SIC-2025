@@ -29,3 +29,17 @@ class Cuenta(models.Model):
     haber = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     def __str__(self):
         return f"{self.codCuenta} - {self.nombreCuenta}"
+
+
+    def saldo_cuenta(self):
+        saldo =self.debe - self.haber
+        return saldo
+
+    def tipo_saldo(self):
+        saldo =self.debe - self.haber
+        if saldo > 0:
+            return "Deudor"
+        elif saldo < 0:
+            return "Acreedor"
+        else:
+            return "Saldo Cero"
