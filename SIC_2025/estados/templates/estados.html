@@ -1,14 +1,22 @@
 {% extends "base.html" %}
+{% block title %}Estados financieros{% endblock %}
 {% block content %}
 <div class="container mt-4">
 
+  <style>
+    .positivo { color: #198754; font-weight: 600; } /* verde */
+    .negativo { color: #dc3545; font-weight: 600; } /* rojo */
+  </style>
+
   <!-- ===== ESTADO DE RESULTADOS ===== -->
-  <h3 class="text-center">TechXiliar S.A. de C.V</h3>
-  <h4 class="text-center">Estado de Resultados</h4>
-  <p class="text-center">Al {{ fecha }}</p>
+  <h2 class="section-title text-center">TechXiliar S.A. de C.V.</h2>
+  <h4 class="subtitle text-center">
+    Estado de Resultados<br>
+    Del {{ fecha_inicio }} al {{ fecha_fin }}
+  </h4>
 
   <table class="table table-bordered mt-3">
-    <thead class="table-secondary">
+    <thead class="table-secondary text-center">
       <tr>
         <th>Concepto</th>
         <th class="text-end">Saldo ($)</th>
@@ -19,7 +27,7 @@
       {% for cuenta in ingresos %}
         <tr>
           <td>{{ cuenta.nombreCuenta }}</td>
-          <td class="text-end">{{ cuenta.haber|floatformat:2 }}</td>
+          <td class="text-end positivo">{{ cuenta.haber|floatformat:2 }}</td>
         </tr>
       {% empty %}
         <tr><td colspan="2" class="text-center">No hay ingresos registrados</td></tr>
@@ -29,96 +37,190 @@
       {% for cuenta in gastos %}
         <tr>
           <td>{{ cuenta.nombreCuenta }}</td>
-          <td class="text-end">{{ cuenta.debe|floatformat:2 }}</td>
+          <td class="text-end negativo">{{ cuenta.debe|floatformat:2 }}</td>
         </tr>
       {% empty %}
         <tr><td colspan="2" class="text-center">No hay gastos registrados</td></tr>
       {% endfor %}
 
-      <tr class="fw-bold"><td>Total de Ingresos</td><td class="text-end">{{ total_ingresos|floatformat:2 }}</td></tr>
-      <tr class="fw-bold"><td>Total de Gastos</td><td class="text-end">{{ total_gastos|floatformat:2 }}</td></tr>
-      <tr><td>Utilidad Bruta</td><td class="text-end">{{ utilidad_bruta|floatformat:2 }}</td></tr>
-      <tr><td>Impuesto (13%)</td><td class="text-end">{{ impuesto|floatformat:2 }}</td></tr>
-      <tr class="table-success"><td>Utilidad Neta</td><td class="text-end">{{ utilidad_neta|floatformat:2 }}</td></tr>
+      <tr class="table-light"><td>Total de Ingresos</td>
+        <td class="text-end positivo">{{ total_ingresos|floatformat:2 }}</td></tr>
+      <tr class="table-light"><td>Total de Gastos</td>
+        <td class="text-end negativo">{{ total_gastos|floatformat:2 }}</td></tr>
+
+      <tr><td>Utilidad Bruta</td>
+        <td class="text-end {% if utilidad_bruta < 0 %}negativo{% else %}positivo{% endif %}">
+          {% if utilidad_bruta < 0 %}-{% endif %}{{ utilidad_bruta|floatformat:2 }}
+        </td></tr>
+
+      <tr><td>Impuesto (13%)</td>
+        <td class="text-end negativo">-{{ impuesto|floatformat:2 }}</td></tr>
+
+      <tr class="table-success fw-bold"><td>Utilidad Neta</td>
+        <td class="text-end {% if utilidad_neta < 0 %}negativo{% else %}positivo{% endif %}">
+          {% if utilidad_neta < 0 %}-{% endif %}{{ utilidad_neta|floatformat:2 }}
+        </td></tr>
     </tbody>
   </table>
 
   <hr>
 
   <!-- ===== ESTADO DE CAPITAL ===== -->
-  <h4 class="text-center">Estado de Capital</h4>
-  <p class="text-center">Al {{ fecha }}</p>
+  <h2 class="section-title text-center">TechXiliar S.A. de C.V.</h2>
+  <h4 class="subtitle text-center">Estado de Capital<br>Al {{ fecha_hoy }}</h4>
 
   <table class="table table-bordered mt-3">
-    <thead class="table-secondary">
+    <thead class="table-secondary text-center">
       <tr>
         <th>Concepto</th>
         <th class="text-end">Saldo ($)</th>
       </tr>
     </thead>
     <tbody>
-      <tr><td>Capital Social</td><td class="text-end">{{ capital_inicial|floatformat:2 }}</td></tr>
-      <tr><td>Utilidad Neta</td><td class="text-end">{{ utilidad_neta|floatformat:2 }}</td></tr>
-      <tr class="table-success fw-bold"><td>Capital Final</td><td class="text-end">{{ capital_final|floatformat:2 }}</td></tr>
+      <tr><td>Capital Social</td>
+        <td class="text-end positivo">{{ capital_inicial|floatformat:2 }}</td></tr>
+
+      <tr><td>Utilidad Neta</td>
+        <td class="text-end {% if utilidad_neta < 0 %}negativo{% else %}positivo{% endif %}">
+          {% if utilidad_neta < 0 %}-{% endif %}{{ utilidad_neta|floatformat:2 }}
+        </td></tr>
+
+      <tr class="table-success fw-bold"><td>Capital Final</td>
+        <td class="text-end {% if capital_final < 0 %}negativo{% else %}positivo{% endif %}">
+          {% if capital_final < 0 %}-{% endif %}{{ capital_final|floatformat:2 }}
+        </td></tr>
     </tbody>
   </table>
 
   <hr>
 
   <!-- ===== BALANCE GENERAL ===== -->
-  <h4 class="text-center">Balance General</h4>
-  <p class="text-center">Al {{ fecha }}</p>
+  <h2 class="section-title text-center">TechXiliar S.A. de C.V.</h2>
+  <h4 class="subtitle text-center">Balance General<br>Al {{ fecha_hoy }}</h4>
 
-  <table class="table table-bordered mt-3">
-    <thead class="table-secondary">
+  <!-- === Activos === -->
+  <h5 class="mt-4">Activos</h5>
+  <table class="table table-bordered text-center align-middle">
+    <thead class="table-secondary fw-bold">
       <tr>
-        <th>Código</th>
-        <th>Cuenta</th>
-        <th class="text-end">Debe</th>
-        <th class="text-end">Haber</th>
-        <th class="text-end">Saldo</th>
+        <th>Código</th><th>Nombre</th><th>Debe</th><th>Haber</th><th>Saldo</th><th>Tipo de saldo</th>
       </tr>
     </thead>
     <tbody>
-      <tr class="table-light"><td colspan="5"><strong>Activos</strong></td></tr>
-      {% for cuenta in activos %}
-        <tr>
-          <td>{{ cuenta.codCuenta }}</td>
-          <td>{{ cuenta.nombreCuenta }}</td>
-          <td class="text-end">{{ cuenta.debe|floatformat:2 }}</td>
-          <td class="text-end">{{ cuenta.haber|floatformat:2 }}</td>
-          <td class="text-end">{{ cuenta.debe|floatformat:2|add:0|floatformat:2 }}</td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="5" class="text-center">No hay activos registrados</td></tr>
-      {% endfor %}
+      {% for a in activos %}
+      <tr>
+        <td>{{ a.cod }}</td><td>{{ a.nombre }}</td>
+        <td>{{ a.debe|floatformat:2 }}</td><td>{{ a.haber|floatformat:2 }}</td>
+        <td class="{% if a.saldo < 0 %}negativo{% else %}positivo{% endif %}">
+          {% if a.saldo < 0 %}-{% endif %}{{ a.saldo|floatformat:2 }}
+        </td>
+        <td>
+          {% if a.tipo_saldo == "Saldo Cero" %}
+            {{ a.tipo_saldo }}
+          {% else %}
+            <span class="{% if a.tipo_saldo == 'Deudor' %}positivo{% else %}negativo{% endif %}">
+              {{ a.tipo_saldo }}
+            </span>
+          {% endif %}
+        </td>
+      </tr>
 
-      <tr class="table-light"><td colspan="5"><strong>Pasivos</strong></td></tr>
-      {% for cuenta in pasivos %}
-        <tr>
-          <td>{{ cuenta.codCuenta }}</td>
-          <td>{{ cuenta.nombreCuenta }}</td>
-          <td class="text-end">{{ cuenta.debe|floatformat:2 }}</td>
-          <td class="text-end">{{ cuenta.haber|floatformat:2 }}</td>
-          <td class="text-end">{{ cuenta.haber|floatformat:2|add:0|floatformat:2 }}</td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="5" class="text-center">No hay pasivos registrados</td></tr>
-      {% endfor %}
-
-      <tr class="table-light"><td colspan="5"><strong>Patrimonio</strong></td></tr>
-      {% for cuenta in patrimonio %}
-        <tr>
-          <td>{{ cuenta.codCuenta }}</td>
-          <td>{{ cuenta.nombreCuenta }}</td>
-          <td class="text-end">{{ cuenta.debe|floatformat:2 }}</td>
-          <td class="text-end">{{ cuenta.haber|floatformat:2 }}</td>
-          <td class="text-end">{{ cuenta.haber|floatformat:2|add:0|floatformat:2 }}</td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="5" class="text-center">No hay patrimonio registrado</td></tr>
-      {% endfor %}
+      {% empty %}<tr><td colspan="5">No hay cuentas de activos</td></tr>{% endfor %}
+      <tr class="table-success fw-bold"><td colspan="5">Total Activos</td>
+        <td class="text-end">{{ total_activos|floatformat:2 }}</td></tr>
     </tbody>
   </table>
+
+  <!-- === Pasivos === -->
+  <h5 class="mt-4">Pasivos</h5>
+  <table class="table table-bordered text-center align-middle">
+    <thead class="table-secondary fw-bold">
+      <tr><th>Código</th><th>Nombre</th><th>Debe</th><th>Haber</th><th>Saldo</th><th>Tipo de saldo</th></tr>
+    </thead>
+    <tbody>
+      {% for p in pasivos %}
+      <tr>
+        <td>{{ p.cod }}</td><td>{{ p.nombre }}</td>
+        <td>{{ p.debe|floatformat:2 }}</td><td>{{ p.haber|floatformat:2 }}</td>
+        <td class="{% if p.saldo < 0 %}negativo{% else %}positivo{% endif %}">
+          {% if p.saldo < 0 %}-{% endif %}{{ p.saldo|floatformat:2 }}
+        </td>
+        <td>
+          {% if p.tipo_saldo == "Saldo Cero" %}
+            {{ p.tipo_saldo }}
+          {% else %}
+            <span class="{% if p.tipo_saldo == 'Deudor' %}positivo{% else %}negativo{% endif %}">
+              {{ p.tipo_saldo }}
+            </span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}<tr><td colspan="6">No hay cuentas de pasivos</td></tr>{% endfor %}
+      <tr class="table-success fw-bold"><td colspan="5">Total Pasivos</td>
+        <td class="text-end">{{ total_pasivos|floatformat:2 }}</td></tr>
+    </tbody>
+
+  </table>
+
+  <!-- === Patrimonio (Balance: un solo capital) === -->
+  <h5 class="mt-4">Patrimonio</h5>
+  <table class="table table-bordered text-center align-middle">
+    <thead class="table-secondary fw-bold">
+      <tr>
+        <th>Código</th>
+        <th>Nombre</th>
+        <th>Debe</th>
+        <th>Haber</th>
+        <th>Saldo</th>
+        <th>Tipo de saldo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Fila única: Capital (capital social + utilidad neta) -->
+      <tr>
+        <td>31XX</td>
+        <td>Capital</td>
+        <td>0.00</td>
+        <td>0.00</td>
+        <td class="{% if total_patrimonio < 0 %}negativo{% else %}positivo{% endif %}">
+          {% if total_patrimonio < 0 %}-{% endif %}{{ total_patrimonio|floatformat:2 }}
+        </td>
+        <td>
+          {% if capital_tipo_saldo == "Saldo Cero" %}
+            <span class="text-secondary">{{ capital_tipo_saldo }}</span>
+          {% else %}
+            <span class="{% if capital_tipo_saldo == 'Deudor' %}negativo{% else %}positivo{% endif %}">
+              {{ capital_tipo_saldo }}
+            </span>
+          {% endif %}
+        </td>
+      </tr>
+
+      <tr class="table-success fw-bold">
+        <td colspan="5" class="text-end">Total Patrimonio</td>
+        <td class="text-end">{{ total_patrimonio|floatformat:2 }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+
+  <!-- === Ecuación Contable === -->
+  <div class="mt-4 text-end">
+    <p class="fw-bold fs-5">Ecuación contable:</p>
+    <p>Total Activos = Total Pasivos + Total Patrimonio + Utilidad Neta</p>
+    <p>
+      {{ total_activos|floatformat:2 }} =
+      {{ total_pasivos|floatformat:2 }} +
+      {{ saldo_patrimonio|floatformat:2 }} +
+      {{ utilidad_neta|floatformat:2 }}
+    </p>
+    {% if diferencia_balance == 0 %}
+      <p class="text-success fw-bold">✅ El balance cuadra correctamente.</p>
+    {% else %}
+      <p class="text-danger fw-bold">⚠️ Descuadre: diferencia = {{ diferencia_balance|floatformat:2 }}</p>
+    {% endif %}
+  </div>
+
+
 </div>
 {% endblock %}
