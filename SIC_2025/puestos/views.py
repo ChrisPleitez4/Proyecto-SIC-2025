@@ -8,6 +8,7 @@ def registrar_puesto(request):
     dias_aguinaldo = 18
     seguro_social = 0.075
     afp = 0.0875
+    incaf=0.01
 
     # Valores iniciales
     nombre = ""
@@ -42,12 +43,13 @@ def registrar_puesto(request):
             # ---- Cálculos ----
             costo_semanal = salario_nominal * 5
             septimo = salario_nominal * 2
-            vacaciones_semanales = ((salario_nominal * dias_vacaciones) * (1 + recargo_vacaciones + seguro_social + afp)) / 52
+            vacaciones_semanales = ((salario_nominal * dias_vacaciones) * (1 + recargo_vacaciones + seguro_social + afp+incaf)) / 52
             aguinaldo_semanal = (salario_nominal * dias_aguinaldo) / 52
             salario_cancelado = costo_semanal + septimo + vacaciones_semanales
             isss = salario_cancelado * seguro_social
             afp_valor = salario_cancelado * afp
-            costo_real_semana = salario_cancelado + aguinaldo_semanal + isss + afp_valor
+            incaf_valor=salario_cancelado*incaf
+            costo_real_semana = salario_cancelado + aguinaldo_semanal + isss + afp_valor+incaf_valor
             costo_real_dia = costo_real_semana / 5
             costo_real_dia_eficiencia = costo_real_dia / eficiencia
             costo_real_mes_eficiencia = costo_real_dia_eficiencia * 20
@@ -64,6 +66,7 @@ def registrar_puesto(request):
                 "Cálculo de salario cancelado": round(salario_cancelado, 2),
                 "ISSS": round(isss, 2),
                 "AFP": round(afp_valor, 2),
+                "INCAF": round(incaf_valor, 2),
                 "Costo real de mano de obra semanal": round(costo_real_semana, 2),
                 "Costo real de mano de obra diaria": round(costo_real_dia, 2),
                 "Costo real de mano de obra al día con eficiencia": round(costo_real_dia_eficiencia, 2),

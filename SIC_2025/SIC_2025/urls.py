@@ -25,4 +25,6 @@ urlpatterns = [
     path('estados/', include('estados.urls')),
     path('', views.index, name='index'),
     path('transacciones/', include('transacciones.urls')),
+    path('libromayor/', include('libromayor.urls')),
+    path('costosventa/', include('costosventa.urls')),
 ]

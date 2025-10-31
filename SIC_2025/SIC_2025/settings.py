@@ -32,6 +32,8 @@ INSTALLED_APPS = [
     'pcu',
     'estados',
     'transacciones',
+    'libromayor',
+    'costosventa',
 ]
 
 MIDDLEWARE = [

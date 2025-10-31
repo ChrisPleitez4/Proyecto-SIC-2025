@@ -82,7 +82,7 @@
 
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Libro Mayor</a>
+            <a class="nav-link {% if request.path == '/libromayor/' %}active{% endif %}" href="{% url 'libro_mayor' %}" >Libro Mayor</a>
           </li>
           <li class="nav-item">
             <a class="nav-link {% if request.path == '/estados/' %}active{% endif %}" href="{% url 'estados_financieros' %}">Estados financieros</a>

@@ -1,0 +1,144 @@
+/* --- Encabezados de Tipo y Subtipo --- */
+h3 {
+    color: #063940;           /* Beige claro */
+    padding: 8px 12px;
+    border-radius: 7px;
+    margin-top: 30px;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+h5 {
+    background-color: #bdddd8;
+    color: #195E63;            /* Beige claro */
+    padding: 6px 10px;
+    border-radius: 6px;
+    margin-top: 15px;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+/* --- Tarjetas de cuentas --- */
+.card {
+    border: 1px solid #8EBDB6;
+    overflow: hidden;
+}
+
+/* --- Encabezado de cada cuenta --- */
+.card-header {
+    background: linear-gradient(90deg, #063940, #195E63);
+    color: #ECE1C3 !important;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* --- Tablas --- */
+.table {
+    background-color: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+}
+.table th {
+    background-color: #3E838C;
+    color: #fff;
+    font-weight: 600;
+    text-align: center;
+}
+.table td {
+    vertical-align: middle;
+    text-align: center;
+}
+.table-hover tbody tr:hover {
+    background-color: #f4f9f8;
+}
+
+/* --- Botones de detalle --- */
+.btn-detalle {
+    background-color: #3E838C;
+    color: #ECE1C3;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s ease-in-out;
+}
+.btn-detalle:hover {
+    background-color: #195E63;
+}
+
+/* --- Modal --- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(6, 57, 64, 0.7);
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    background-color: #ECE1C3;
+    margin: 6% auto;
+    padding: 25px;
+    border-radius: 12px;
+    width: 85%;
+    max-width: 700px;
+    box-shadow: 0 0 15px rgba(6, 57, 64, 0.4);
+    position: relative;
+    animation: slideUp 0.4s ease;
+}
+
+.close {
+    color: #063940;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.close:hover {
+    color: #195E63;
+}
+
+/* --- Contenido del detalle --- */
+#detalleContenido h3 {
+    color: #063940;
+    margin-bottom: 10px;
+}
+
+#detalleContenido h4 {
+    color: #063940;
+    margin-bottom: 10px;
+}
+
+#detalleContenido p {
+    margin: 5px 0;
+    color: #195E63;
+    font-weight: 500;
+}
+
+/* --- Tabla de movimientos dentro del modal --- */
+.tabla-detalle {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+.tabla-detalle thead {
+    background-color: #3E838C;
+    color: #ECE1C3;
+}
+.tabla-detalle th, .tabla-detalle td {
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+.tabla-detalle tbody tr:nth-child(even) {
+    background-color: #8EBDB6;
+    color: #063940;
+}
