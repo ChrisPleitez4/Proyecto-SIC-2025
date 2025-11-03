@@ -51,33 +51,32 @@ class SaldoCuenta(models.Model):
     def calcular_saldos_periodo(cls, periodo):
         cuentas = Cuenta.objects.all()
         
-        # Calcular utilidad neta
-        ingresos_qs = cuentas.filter(subTipoCuenta__tipoCuenta__codTipoCuenta__startswith='5')
-        gastos_qs   = cuentas.filter(subTipoCuenta__tipoCuenta__codTipoCuenta__startswith='4')
-        
-        total_ingresos = sum((m.monto if not m.tipo else -m.monto
-                            for c in ingresos_qs for m in c.movimientos.filter(transaccion__periodo=periodo)),
-                            Decimal('0.00'))
-        total_gastos = sum((m.monto if m.tipo else -m.monto
-                            for c in gastos_qs for m in c.movimientos.filter(transaccion__periodo=periodo)),
-                        Decimal('0.00'))
-        utilidad_bruta = total_ingresos - total_gastos
+        # Calcular utilidad neta del periodo (Ingresos - Gastos)
+        ingresos = cuentas.filter(subTipoCuenta__tipoCuenta__codTipoCuenta__startswith='5')
+        gastos   = cuentas.filter(subTipoCuenta__tipoCuenta__codTipoCuenta__startswith='4')
+        total_ingresos = sum(((c.haber - c.debe) for c in ingresos), 0)
+        total_gastos   = sum(((c.debe - c.haber) for c in gastos), 0)
+        utilidad_neta  = total_ingresos - total_gastos
 
         for cuenta in cuentas:
             movimientos = cuenta.movimientos.filter(transaccion__periodo=periodo)
             
-            saldo = sum([m.monto if m.tipo else -m.monto for m in movimientos])
-
-            # Si es Capital Social, agregar utilidad
-            if cuenta.codCuenta == '3101':
-                saldo += utilidad_bruta
-
-            # Guardar saldo final
-            obj, _ = cls.objects.update_or_create(
+            # Reglas específicas
+            if cuenta.codCuenta == '3101':  
+                # Capital Social = movimientos + utilidad neta del periodo
+                saldo_final = sum([m.monto if not m.tipo else -m.monto for m in movimientos]) + utilidad_neta
+            
+            elif cuenta.subTipoCuenta.tipoCuenta.codTipoCuenta.startswith(('4', '5')):
+                # Cuentas de gastos e ingresos se reinician a 0
+                saldo_final = Decimal('0.00')
+            
+            else:
+                # Otras cuentas (activos, pasivos, etc.)
+                saldo_final = sum([m.monto if m.tipo else -m.monto for m in movimientos])
+            
+            # Crear o actualizar registro
+            cls.objects.update_or_create(
                 cuenta=cuenta,
                 periodo=periodo,
-                defaults={'saldo_final': saldo}
+                defaults={'saldo_final': saldo_final}
             )
-
-        # Retornar utilidad neta para usar en el próximo periodo
-        return utilidad_bruta
