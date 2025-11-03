@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Crear Nuevo Periodo Contable</h1>
+
+{% if messages %}
+<ul>
+    {% for message in messages %}
+    <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<form method="post" id="form-periodo">
+    {% csrf_token %}
+    <table>
+        {{ form.as_table }}
+    </table>
+    <button type="submit">Crear Periodo</button>
+    <a href="{% url 'lista_periodos' %}">Cancelar</a>
+</form>
+
+<script>
+document.getElementById('form-periodo').addEventListener('submit', function(e) {
+    const fechaInicio = new Date(document.getElementById('id_fecha_inicio').value);
+    const fechaFin = new Date(document.getElementById('id_fecha_fin').value);
+
+    if (fechaFin < fechaInicio) {
+        e.preventDefault();
+        alert('La fecha de fin no puede ser anterior a la fecha de inicio.');
+    }
+});
+</script>
+{% endblock %}

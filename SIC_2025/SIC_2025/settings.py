@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'transacciones',
     'libromayor',
     'costosventa',
+    'periodos',
 ]
 
 MIDDLEWARE = [

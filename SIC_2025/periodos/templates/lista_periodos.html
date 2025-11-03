@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Periodo contable{% endblock %}
+{% load static %}
+
+{% block content %}
+<h1>Periodos contables</h1>
+<a href="{% url 'crear_periodo' %}">Crear nuevo periodo</a>
+<table border="1">
+    <tr>
+        <th>Nombre</th>
+        <th>Fecha inicio</th>
+        <th>Fecha fin</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+    </tr>
+    {% for p in periodos %}
+    <tr>
+        <td>{{ p.nombre }}</td>
+        <td>{{ p.fecha_inicio }}</td>
+        <td>{{ p.fecha_fin }}</td>
+        <td>{{ p.activo|yesno:"Activo,Cerrado" }}</td>
+        <td>
+            {% if p.activo %}
+            <a href="{% url 'cerrar_periodo' p.id %}">Cerrar</a>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% if messages %}
+  <ul>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+{% endblock %}

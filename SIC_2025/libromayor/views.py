@@ -3,23 +3,44 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from cuentas.models import Cuenta
 from transacciones.models import Movimiento, Transaccion
+from periodos.models import PeriodoContable, SaldoCuenta
 
 def libro_mayor(request):
-    # Obtener todas las cuentas con sus relaciones para evitar consultas repetidas
+    # Todos los periodos para el dropdown
+    periodos = PeriodoContable.objects.order_by('-fecha_inicio')
+
+    # Periodo seleccionado por GET (si no hay, usar último activo)
+    periodo_id = request.GET.get('periodo')
+    periodo = None
+    if periodo_id:
+        periodo = PeriodoContable.objects.filter(pk=periodo_id).first()
+    if not periodo:
+        periodo = PeriodoContable.objects.filter(activo=True).first()
+
     cuentas = Cuenta.objects.select_related('subTipoCuenta', 'subTipoCuenta__tipoCuenta').all().order_by(
         'subTipoCuenta__tipoCuenta__codTipoCuenta',
         'subTipoCuenta__codSubTipoCuenta',
         'codCuenta'
     )
 
-    # Agrupar cuentas por tipo y subtipo
     data_dict = defaultdict(lambda: defaultdict(list))
 
     for cuenta in cuentas:
-        # Movimientos de la cuenta
-        movimientos = Movimiento.objects.filter(cuenta=cuenta).select_related('transaccion').order_by('transaccion__fecha', 'id')
+        # Movimientos dentro del periodo
+        movimientos = Movimiento.objects.filter(
+            cuenta=cuenta,
+            transaccion__fecha__gte=periodo.fecha_inicio,
+            transaccion__fecha__lte=periodo.fecha_fin
+        ).select_related('transaccion').order_by('transaccion__fecha', 'id')
 
-        saldo = 0
+        # SALDO INICIAL: usar SaldoCuenta del periodo anterior si existe
+        saldo_inicial_obj = SaldoCuenta.objects.filter(
+            cuenta=cuenta,
+            periodo__fecha_fin__lt=periodo.fecha_inicio
+        ).order_by('-periodo__fecha_fin').first()
+        saldo_inicial = saldo_inicial_obj.saldo_final if saldo_inicial_obj else 0
+
+        saldo = saldo_inicial
         movimientos_data = []
         for mov in movimientos:
             if mov.tipo:  # Debe
@@ -41,6 +62,7 @@ def libro_mayor(request):
 
         cuenta_dict = {
             'cuenta': cuenta,
+            'saldo_inicial': float(saldo_inicial),
             'movimientos': movimientos_data,
             'saldo_final': float(saldo)
         }
@@ -63,7 +85,11 @@ def libro_mayor(request):
             'subtipos': subtipo_list
         })
 
-    return render(request, 'libromayor.html', {'data': data})
+    return render(request, 'libromayor.html', {
+        'data': data,
+        'periodos': periodos,
+        'periodo_seleccionado': periodo
+    })
 
 
 def detalle_transaccion_libromayor(request, transaccion_id):
