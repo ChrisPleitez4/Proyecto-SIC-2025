@@ -6,7 +6,54 @@
   <style>
     .positivo { color: #198754; font-weight: 600; } /* verde */
     .negativo { color: #dc3545; font-weight: 600; } /* rojo */
+
+    /* --- Impresión --- */
+    @media print {
+      /* Ocultar botón y cualquier no-print */
+      .no-print, .no-print * { display: none !important; }
+
+      /* Márgenes del papel */
+      @page { size: A4 portrait; margin: 15mm 18mm; }
+
+      /* Romper el límite de ancho de Bootstrap al imprimir */
+      .container, .container-fluid {
+        max-width: none !important;
+        width: 100% !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+
+      /* Tablas a todo el ancho */
+      table, .table { width: 100% !important; }
+
+      /* Un poco menos de padding de celda */
+      .table td, .table th {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+      }
+
+      /* Mantener colores de fondo */
+      .table-success, .table-secondary, .table-light {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      /* ---- Salto de página entre estados ---- */
+      .page-break { break-before: page; page-break-before: always; }
+
+      /* Evitar que una tabla se parta a medias y repetir encabezados */
+      table { break-inside: avoid; page-break-inside: auto; }
+      thead { display: table-header-group; }
+      tr, th, td { break-inside: avoid; page-break-inside: avoid; }
+    }
   </style>
+
+  <!-- 🔹 Botón para imprimir -->
+  <div class="d-flex justify-content-end mb-3 no-print">
+    <button class="btn btn-outline-secondary" onclick="window.print()">
+      🖨️ Imprimir estados financieros
+    </button>
+  </div>
 
   <!-- ===== ESTADO DE RESULTADOS ===== -->
   <h2 class="section-title text-center">TechXiliar S.A. de C.V.</h2>
@@ -63,7 +110,8 @@
     </tbody>
   </table>
 
-  <hr>
+  <!-- Salto de página -->
+  <hr class="page-break">
 
   <!-- ===== ESTADO DE CAPITAL ===== -->
   <h2 class="section-title text-center">TechXiliar S.A. de C.V.</h2>
@@ -92,7 +140,8 @@
     </tbody>
   </table>
 
-  <hr>
+  <!-- Salto de página -->
+  <hr class="page-break">
 
   <!-- ===== BALANCE GENERAL ===== -->
   <h2 class="section-title text-center">TechXiliar S.A. de C.V.</h2>
@@ -125,7 +174,7 @@
         </td>
       </tr>
 
-      {% empty %}<tr><td colspan="5">No hay cuentas de activos</td></tr>{% endfor %}
+      {% empty %}<tr><td colspan="6">No hay cuentas de activos</td></tr>{% endfor %}
       <tr class="table-success fw-bold"><td colspan="5">Total Activos</td>
         <td class="text-end">{{ total_activos|floatformat:2 }}</td></tr>
     </tbody>
@@ -162,7 +211,7 @@
 
   </table>
 
-  <!-- === Patrimonio (Balance: un solo capital) === -->
+  <!-- === Patrimonio === -->
   <h5 class="mt-4">Patrimonio</h5>
   <table class="table table-bordered text-center align-middle">
     <thead class="table-secondary fw-bold">
@@ -176,7 +225,6 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Fila única: Capital (capital social + utilidad neta) -->
       <tr>
         <td>3101</td>
         <td>Capital</td>
@@ -189,7 +237,7 @@
           {% if capital_tipo_saldo == "Saldo Cero" %}
             <span class="text-secondary">{{ capital_tipo_saldo }}</span>
           {% else %}
-            <span class="{% if capital_tipo_saldo == 'Deudor' %}negativo{% else %}positivo{% endif %}">
+            <span class="{% if capital_tipo_saldo == 'Deudor' %}positivo{% else %}negativo{% endif %}">
               {{ capital_tipo_saldo }}
             </span>
           {% endif %}
@@ -203,16 +251,14 @@
     </tbody>
   </table>
 
-
   <!-- === Ecuación Contable === -->
   <div class="mt-4 text-end">
     <p class="fw-bold fs-5">Ecuación contable:</p>
-    <p>Total Activos = Total Pasivos + Total Patrimonio + Utilidad Bruta</p>
+    <p>Total Activos = Total Pasivos + Total Patrimonio</p>
     <p>
       {{ total_activos|floatformat:2 }} =
       {{ total_pasivos|floatformat:2 }} +
-      {{ total_patrimonio|floatformat:2 }} +
-      {{ utilidad_bruta|floatformat:2 }}
+      {{ total_patrimonio|floatformat:2 }}
     </p>
     {% if diferencia_balance == 0 %}
       <p class="text-success fw-bold">✅ El balance cuadra correctamente.</p>
@@ -220,7 +266,6 @@
       <p class="text-danger fw-bold">⚠️ Descuadre: diferencia = {{ diferencia_balance|floatformat:2 }}</p>
     {% endif %}
   </div>
-
 
 </div>
 {% endblock %}
