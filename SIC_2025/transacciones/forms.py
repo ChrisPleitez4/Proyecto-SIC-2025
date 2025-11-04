@@ -2,7 +2,7 @@ from django import forms
 from .models import Transaccion, Movimiento
 from datetime import date
 from decimal import Decimal, ROUND_DOWN
-
+from periodos.models import PeriodoContable
 
 class TransaccionForm(forms.ModelForm):
     class Meta:
@@ -38,13 +38,19 @@ class TransaccionForm(forms.ModelForm):
     
     # Validación para fecha
     def clean_fecha(self):
+        periodo_activo = PeriodoContable.objects.filter(activo=True).first()
+        if not periodo_activo:
+            raise forms.ValidationError("Parece que no hay un período contable abierto en este momento. Revise la lista de períodos o abra uno nuevo para poder continuar.")
         fecha = self.cleaned_data.get('fecha')
         if fecha is None:
             return fecha  # ya se valida con required
-        inicio_anio = date(date.today().year, 1, 1)
-        limite_max = date(2100, 12, 31)
+        inicio_anio = periodo_activo.fecha_inicio
+        limite_max = periodo_activo.fecha_fin
+        nombre = periodo_activo.nombre
         if fecha < inicio_anio or fecha > limite_max:
-            raise forms.ValidationError(f"La fecha debe estar entre {inicio_anio} y {limite_max}")
+            raise forms.ValidationError(
+                f"Periodo contable actual: {nombre} \n" 
+                f". Fecha inicio: {inicio_anio}, Fecha fin: {limite_max}, porfavor seleccione una fecha dentro de este rango.")
         return fecha
 
 class MovimientoForm(forms.ModelForm):

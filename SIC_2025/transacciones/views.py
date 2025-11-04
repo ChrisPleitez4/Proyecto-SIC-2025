@@ -3,13 +3,16 @@ from django.db import transaction
 from .models import Transaccion, Movimiento
 from .forms import TransaccionForm, MovimientoForm
 from django.core.paginator import Paginator
-
+from periodos.models import PeriodoContable
 
 def transacciones_vista(request):
     transaccion_form = TransaccionForm(request.POST or None)
     movimiento_form = MovimientoForm()  # solo para el modal (sin POST inicial)
-    transacciones = Transaccion.objects.all().order_by('id')
-
+    periodo_activo = PeriodoContable.objects.filter(activo=True).first()
+    if periodo_activo:
+        transacciones = Transaccion.objects.filter(periodo =periodo_activo).order_by('id')
+    else:
+        transacciones = Transaccion.objects.none() #nada porque no hay periodo activo
     # Paginación
     paginator = Paginator(transacciones, 10) # 10 transacciones por página 
     page_number = request.GET.get('page') # obtener la página de la URL 

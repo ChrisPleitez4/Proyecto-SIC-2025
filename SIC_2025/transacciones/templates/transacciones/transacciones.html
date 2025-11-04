@@ -47,7 +47,7 @@
   <table class="table table-striped">
     <thead>
       <tr>
-        <th>ID</th>
+        <th>Nro</th>
         <th>Descripción</th>
         <th>Monto</th>
         <th>Fecha</th>
@@ -57,7 +57,7 @@
     <tbody>
       {% for t in page_obj %}
       <tr>
-        <td>{{ t.id }}</td>
+        <td>{{ t.nro_transaccion }}</td>
         <td>{{ t.descripcion }}</td>
         <td>${{ t.monto }}</td>
         <td>{{ t.fecha|date:"d/m/Y" }}</td>
