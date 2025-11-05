@@ -1,24 +1,32 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}Crear Periodo Contable{% endblock %}
 
 {% block content %}
-<h1>Crear Nuevo Periodo Contable</h1>
+<link rel="stylesheet" href="{% static 'css/periodos.css' %}">
 
-{% if messages %}
-<ul>
-    {% for message in messages %}
-    <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
-    {% endfor %}
-</ul>
-{% endif %}
+<div class="periodos-container">
+    <h2>Crear Nuevo Periodo Contable</h2>
 
-<form method="post" id="form-periodo">
-    {% csrf_token %}
-    <table>
-        {{ form.as_table }}
-    </table>
-    <button type="submit">Crear Periodo</button>
-    <a href="{% url 'lista_periodos' %}">Cancelar</a>
-</form>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" id="form-periodo">
+        {% csrf_token %}
+        <table>
+            {{ form.as_table }}
+        </table>
+
+        <div class="form-buttons">
+            <button type="submit">Crear Periodo</button>
+            <a href="{% url 'lista_periodos' %}" class="cancelar">Cancelar</a>
+        </div>
+    </form>
+</div>
 
 <script>
 document.getElementById('form-periodo').addEventListener('submit', function(e) {

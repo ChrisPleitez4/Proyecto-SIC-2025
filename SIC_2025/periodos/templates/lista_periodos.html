@@ -1,39 +1,54 @@
 {% extends 'base.html' %}
-{% block title %}Periodo contable{% endblock %}
 {% load static %}
+{% block title %}Lista de Periodos{% endblock %}
 
 {% block content %}
-<h1>Periodos contables</h1>
-<a href="{% url 'crear_periodo' %}">Crear nuevo periodo</a>
-<table border="1">
-    <tr>
-        <th>Nombre</th>
-        <th>Fecha inicio</th>
-        <th>Fecha fin</th>
-        <th>Estado</th>
-        <th>Acciones</th>
-    </tr>
-    {% for p in periodos %}
-    <tr>
-        <td>{{ p.nombre }}</td>
-        <td>{{ p.fecha_inicio }}</td>
-        <td>{{ p.fecha_fin }}</td>
-        <td>{{ p.activo|yesno:"Activo,Cerrado" }}</td>
-        <td>
-            {% if p.activo %}
-            <a href="{% url 'cerrar_periodo' p.id %}">Cerrar</a>
-            {% endif %}
-        </td>
-    </tr>
-    {% endfor %}
-</table>
+<link rel="stylesheet" href="{% static 'css/periodos.css' %}">
 
-{% if messages %}
-  <ul>
-    {% for message in messages %}
-      <li>{{ message }}</li>
-    {% endfor %}
-  </ul>
-{% endif %}
+<div class="periodos-container">
+    <h2>Periodos Contables</h2>
 
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="acciones">
+        <a href="{% url 'crear_periodo' %}" class="btn-nuevo">+ Crear nuevo periodo</a>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Fecha inicio</th>
+                <th>Fecha fin</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in periodos %}
+            <tr>
+                <td>{{ p.nombre }}</td>
+                <td>{{ p.fecha_inicio }}</td>
+                <td>{{ p.fecha_fin }}</td>
+                <td>{{ p.activo|yesno:"Activo,Cerrado" }}</td>
+                <td>
+                    {% if p.activo %}
+                        <a href="{% url 'cerrar_periodo' p.id %}" class="btn-cerrar">Cerrar</a>
+                    {% else %}
+                        <span class="cerrado">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="no-data">No hay periodos registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}
