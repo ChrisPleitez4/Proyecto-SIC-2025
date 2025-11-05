@@ -50,6 +50,8 @@
         <th>Nro</th>
         <th>Descripción</th>
         <th>Monto</th>
+        <th>Σ DEBE</th>
+        <th>Σ HABER</th>
         <th>Fecha</th>
         <th>Acciones</th>
       </tr>
@@ -60,6 +62,10 @@
         <td>{{ t.nro_transaccion }}</td>
         <td>{{ t.descripcion }}</td>
         <td>${{ t.monto }}</td>
+        <td class="fw-bold {% if t.total_debe != t.total_haber %}text-danger{% else %}text-success{% endif %}"
+        >${{ t.total_debe|default:"0.00"|floatformat:2 }}</td>
+        <td class="fw-bold {% if t.total_debe != t.total_haber %}text-danger{% else %}text-success{% endif %}"
+        >${{ t.total_haber|default:"0.00"|floatformat:2 }}</td>
         <td>{{ t.fecha|date:"d/m/Y" }}</td>
         <td>
           <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalMovimiento{{ t.id }}">
@@ -84,11 +90,16 @@
               <!-- Campo cuenta -->
               <div class="mb-3">
                 <label for="id_cuenta_{{ t.id }}" class="form-label">Cuenta</label>
-                <select name="cuenta" id="id_cuenta_{{ t.id }}" class="form-select">
+                <select name="cuenta" id="id_cuenta_{{ t.id }}" class="form-select cuenta-select" data-transaccion="{{ t.id }}">
                   {% for c in movimiento_form.fields.cuenta.queryset %}
-                    <option value="{{ c.id }}">{{ c.codCuenta }} - {{ c.nombreCuenta }}</option>
+                    <option value="{{ c.id }}"data-codigo="{{ c.codCuenta }}">{{ c.codCuenta }} - {{ c.nombreCuenta }}</option>
                   {% endfor %}
                 </select>
+                  <div class="mensaje-cuenta mt-2">
+                <div id="mensaje_ingreso_{{ t.id }}" class="form-text text-success fw-bold mt-2" style="display: none;">
+                  Cuenta de ingreso. Solo registre esta cuenta; IVA y caja se generan automáticamente.
+                </div>
+                </div>
                 {% if movimiento_form.errors.cuenta %}
                   <div class="text-danger small">{{ movimiento_form.errors.cuenta.0 }}</div>
                 {% endif %}
@@ -104,7 +115,7 @@
               </div>
 
               <!-- Campo tipo -->
-              <div class="mb-3">
+              <div class="mb-3" id="div_tipo_{{ t.id }}">
                 <label for="id_tipo_{{ t.id }}" class="form-label">Tipo</label>
                 <select name="tipo" id="id_tipo_{{ t.id }}" class="form-select">
                   {% for val, label in movimiento_form.fields.tipo.choices %}
@@ -182,4 +193,97 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  console.log("✅ Script cargado correctamente (versión con evento modal, robusto).");
+
+  // Escuchar cuando se muestra cualquier modal
+  document.querySelectorAll('.modal').forEach(function(modal) {
+    modal.addEventListener('shown.bs.modal', function () {
+      console.log("🟢 Modal visible:", modal.id);
+
+      const select = modal.querySelector('.cuenta-select');
+      if (!select) {
+        console.log("⚠️ No se encontró select en", modal.id);
+        return;
+      }
+
+      console.log("🎯 Select detectado:", select.id);
+
+      // handler para cuando cambie la cuenta
+      const handleChange = function() {
+        // intentamos obtener transaccionId desde data-attribute
+        let transaccionId = this.getAttribute('data-transaccion');
+
+        // fallback: si no hay data-transaccion, extraer del id "id_cuenta_XXX"
+        if (!transaccionId) {
+          const match = this.id.match(/id_cuenta_(\d+)$/);
+          if (match) transaccionId = match[1];
+        }
+
+        const selectedOption = this.options[this.selectedIndex];
+        const codCuenta = selectedOption ? selectedOption.getAttribute('data-codigo') : null;
+
+        // primero buscamos el mensaje dentro del modal (mejor scope)
+        let mensajeDiv = null;
+        if (transaccionId) {
+          mensajeDiv = modal.querySelector(`#mensaje_ingreso_${transaccionId}`);
+        }
+        // fallback: si no lo encontramos por id, buscar el contenedor general .mensaje-cuenta
+        if (!mensajeDiv) {
+          mensajeDiv = modal.querySelector('.mensaje-cuenta');
+        }
+
+        console.log("📘 Cuenta seleccionada:", codCuenta);
+        console.log("🧩 transaccionId:", transaccionId);
+        console.log("🧩 mensajeDiv encontrado:", mensajeDiv);
+
+        if (codCuenta && codCuenta.startsWith('51')) {
+          console.log("✅ Es ingreso.");
+          if (mensajeDiv) {
+            // si mensajeDiv es el contenedor, inyectamos texto; si es el div específico, lo mostramos
+            if (mensajeDiv.id && mensajeDiv.id.startsWith('mensaje_ingreso_')) {
+              mensajeDiv.style.display = 'block';
+              mensajeDiv.style.visibility = 'visible';
+              mensajeDiv.style.opacity = '1';
+            } else {
+              // contenedor genérico -> asignar HTML (mantener estilo verde)
+              mensajeDiv.innerHTML = '<div class="form-text text-success fw-bold mt-2">Esta cuenta es de ingreso y se calculará automáticamente su IVA.</div>';
+            }
+          } else {
+            console.warn("⚠️ No se encontró ningún elemento para mostrar el mensaje.");
+          }
+        } else {
+          console.log("❌ No es ingreso.");
+          if (mensajeDiv) {
+            // ocultar: si es id específico, ocultar; si es contenedor, limpiar
+            if (mensajeDiv.id && mensajeDiv.id.startsWith('mensaje_ingreso_')) {
+              mensajeDiv.style.display = 'none';
+            } else {
+              mensajeDiv.innerHTML = '';
+            }
+          }
+        }
+      };
+
+      // Si ya se había seleccionado algo por defecto, ejecutar una vez para precargar el estado
+      handleChange.call(select);
+
+      // Asegurarnos de no duplicar listeners: remover antes (si existiera)
+      select.removeEventListener('change', handleChange);
+      select.addEventListener('change', handleChange);
+    });
+  });
+});
+</script>
+
+
+
+
+
+
+
+
+
+
 {% endblock %}

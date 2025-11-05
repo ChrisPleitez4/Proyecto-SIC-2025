@@ -43,3 +43,6 @@ class Cuenta(models.Model):
             return "Acreedor"
         else:
             return "Saldo Cero"
+    
+    def es_ingreso(self):
+        return self.codCuenta.startswith('51')
