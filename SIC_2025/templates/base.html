@@ -49,6 +49,28 @@
       font-size: 0.9rem;
       color: #6c757d;
     }
+
+    /* Desplegar dropdown al hover */
+    .nav-item.dropdown:hover .dropdown-menu {
+        display: block;
+        margin-top: 0; /* opcional, ajusta si quieres que quede alineado */
+    }
+
+    /* Dropdown mismo color de navbar */
+    .navbar-dark .dropdown-menu {
+        background-color: #2c3e50;
+    }
+
+    /* Links dentro del dropdown */
+    .navbar-dark .dropdown-menu .dropdown-item {
+        color: #ecf0f1;
+        transition: 0.2s;
+    }
+
+    .navbar-dark .dropdown-menu .dropdown-item:hover {
+        color: #1abc9c;
+        background-color: transparent; /* mantiene el color de fondo igual */
+    }
   </style>
 
   {% block extra_css %}{% endblock %}
@@ -76,16 +98,23 @@
           </li>
           <li class="nav-item">
             <a class="nav-link {% if request.path == '/puestos/' %}active{% endif %}" href="{% url 'registrar_puesto' %}">Puestos</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link {% if request.path == '/proyectos/registrar/' %}active{% endif %}" href="{% url 'Registrar_proyecto' %}"> Contabilidad de costos</a>
-
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle {% if '/proyectos/registrar/' in request.path or '/costoventa/' in request.path %}active{% endif %}" href="#" id="costosDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Contabilidad de costos
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="costosDropdown">
+              <li><a class="dropdown-item" href="{% url 'Registrar_proyecto' %}">PCU</a></li>
+              <li><a class="dropdown-item" href="{% url 'calcular_costo' %}">Calcular anticipo</a></li>
+            </ul>
           </li>
           <li class="nav-item">
             <a class="nav-link {% if request.path == '/libromayor/' %}active{% endif %}" href="{% url 'libro_mayor' %}" >Libro Mayor</a>
           </li>
           <li class="nav-item">
             <a class="nav-link {% if request.path == '/estados/' %}active{% endif %}" href="{% url 'estados_financieros' %}">Estados financieros</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.path == '/periodos/' %}active{% endif %}" href="{% url 'lista_periodos' %}">Periodos contables</a>
           </li>
         </ul>
       </div>
