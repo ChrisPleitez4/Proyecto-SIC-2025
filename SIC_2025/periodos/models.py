@@ -3,6 +3,7 @@ from django.utils import timezone
 from cuentas.models import Cuenta
 from decimal import Decimal
 
+
 class PeriodoContable(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
     fecha_inicio = models.DateField()
@@ -17,66 +18,83 @@ class PeriodoContable(models.Model):
         estado = "Activo" if self.activo else "Cerrado"
         return f"{self.nombre} ({estado})"
 
+    # -----------------------------------------
+    # 🔒 CIERRE DEL PERIODO CONTABLE
+    # -----------------------------------------
     def cerrar_periodo(self):
-        """Cierra el periodo solo si la fecha actual >= fecha_fin"""
+        """Cierra el periodo, calcula los saldos finales y utilidad neta."""
         if timezone.now().date() < self.fecha_fin:
             raise ValueError("No se puede cerrar el periodo antes de su fecha de fin.")
+
+        from transacciones.models import Movimiento, Transaccion  # import local
+
+        cuentas = Cuenta.objects.all()
+
+        # calcular utilidad neta solo de este periodo
+        ingresos = cuentas.filter(subTipoCuenta__tipoCuenta__codTipoCuenta__startswith='5')
+        gastos = cuentas.filter(subTipoCuenta__tipoCuenta__codTipoCuenta__startswith='4')
+
+        total_ingresos = sum((c.haber - c.debe) for c in ingresos)
+        total_gastos = sum((c.debe - c.haber) for c in gastos)
+        utilidad_neta = total_ingresos - total_gastos
+
+        for cuenta in cuentas:
+            tipo = cuenta.subTipoCuenta.tipoCuenta.codTipoCuenta[0]
+
+            if tipo in ['4', '5']:
+                saldo = Decimal('0.00')
+                cuenta.debe = Decimal('0.00')
+                cuenta.haber = Decimal('0.00')
+            elif tipo == '1':
+                saldo = cuenta.debe - cuenta.haber
+            elif tipo in ['2', '3']:
+                saldo = cuenta.haber - cuenta.debe
+            else:
+                saldo = Decimal('0.00')
+
+            if cuenta.codCuenta == '3101':
+                saldo += utilidad_neta
+
+            cuenta.saldo_final = saldo
+            cuenta.save()
+
         self.activo = False
         self.fecha_cierre = timezone.now()
         self.save()
-    
-    def guardar(self, *args, **kwargs):
-        """Evita periodos que solapen otro activo"""
-        if self.activo:
-            super_periodos = PeriodoContable.objects.filter(activo=True).exclude(id=self.id)
-            for p in super_periodos:
-                if (self.fecha_inicio <= p.fecha_fin and self.fecha_fin >= p.fecha_inicio):
-                    raise ValueError("No puede haber periodos activos que se solapen.")
-        if self.fecha_inicio > self.fecha_fin:
-            raise ValueError("La fecha de inicio no puede ser mayor a la fecha de fin.")
-        super().save(*args, **kwargs)
 
-class SaldoCuenta(models.Model):
-    cuenta = models.ForeignKey(Cuenta, on_delete=models.CASCADE)
-    periodo = models.ForeignKey(PeriodoContable, on_delete=models.CASCADE)
-    saldo_final = models.DecimalField(max_digits=14, decimal_places=2)
+    # -----------------------------------------
+    # 🚀 APERTURA DE NUEVO PERIODO
+    # -----------------------------------------
+def abrir_nuevo_periodo(self, nombre, fecha_inicio, fecha_fin):
+    """Abre un nuevo periodo trasladando saldos iniciales según la naturaleza de la cuenta."""
+    nuevo_periodo = PeriodoContable.objects.create(
+        nombre=nombre,
+        fecha_inicio=fecha_inicio,
+        fecha_fin=fecha_fin,
+        activo=True
+    )
 
-    class Meta:
-        unique_together = ('cuenta', 'periodo')
+    for cuenta in Cuenta.objects.all():
+        cuenta.debe = Decimal('0.00')
+        cuenta.haber = Decimal('0.00')
 
-    def __str__(self):
-        return f"{self.cuenta.nombreCuenta} - {self.periodo.nombre}: {self.saldo_final}"
+        tipo = cuenta.subTipoCuenta.tipoCuenta.codTipoCuenta[0]
+        saldo = cuenta.saldo_final or Decimal('0.00')
 
-    @classmethod
-    def calcular_saldos_periodo(cls, periodo):
-        cuentas = Cuenta.objects.all()
-        
-        # Calcular utilidad neta del periodo (Ingresos - Gastos)
-        ingresos = cuentas.filter(subTipoCuenta__tipoCuenta__codTipoCuenta__startswith='5')
-        gastos   = cuentas.filter(subTipoCuenta__tipoCuenta__codTipoCuenta__startswith='4')
-        total_ingresos = sum(((c.haber - c.debe) for c in ingresos), 0)
-        total_gastos   = sum(((c.debe - c.haber) for c in gastos), 0)
-        utilidad_neta  = total_ingresos - total_gastos
+        # Solo trasladar activos, pasivos y capital
+        if tipo in ['1', '2', '3']:
+            if tipo == '1':  # Activo → saldo deudor
+                if saldo > 0:
+                    cuenta.debe = saldo
+                elif saldo < 0:
+                    cuenta.haber = abs(saldo)
 
-        for cuenta in cuentas:
-            movimientos = cuenta.movimientos.filter(transaccion__periodo=periodo)
-            
-            # Reglas específicas
-            if cuenta.codCuenta == '3101':  
-                # Capital Social = movimientos + utilidad neta del periodo
-                saldo_final = sum([m.monto if not m.tipo else -m.monto for m in movimientos]) + utilidad_neta
-            
-            elif cuenta.subTipoCuenta.tipoCuenta.codTipoCuenta.startswith(('4', '5')):
-                # Cuentas de gastos e ingresos se reinician a 0
-                saldo_final = Decimal('0.00')
-            
-            else:
-                # Otras cuentas (activos, pasivos, etc.)
-                saldo_final = sum([m.monto if m.tipo else -m.monto for m in movimientos])
-            
-            # Crear o actualizar registro
-            cls.objects.update_or_create(
-                cuenta=cuenta,
-                periodo=periodo,
-                defaults={'saldo_final': saldo_final}
-            )
+            elif tipo in ['2', '3']:  # Pasivo o Capital → saldo acreedor
+                if saldo > 0:
+                    cuenta.haber = saldo
+                elif saldo < 0:
+                    cuenta.debe = abs(saldo)
+
+        cuenta.save()
+
+    return nuevo_periodo

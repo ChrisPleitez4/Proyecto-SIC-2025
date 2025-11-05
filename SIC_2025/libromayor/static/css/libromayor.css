@@ -79,6 +79,7 @@ h5 {
     overflow: auto;
     background-color: rgba(6, 57, 64, 0.7);
     animation: fadeIn 0.3s ease;
+    overflow-y: auto;
 }
 
 .modal-content {

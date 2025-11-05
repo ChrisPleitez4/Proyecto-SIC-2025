@@ -30,15 +30,19 @@ class Cuenta(models.Model):
     def __str__(self):
         return f"{self.codCuenta} - {self.nombreCuenta}"
 
-
     def saldo_cuenta(self):
-        saldo =self.debe - self.haber
-        return saldo
+
+            return self.debe - self.haber
+        elif tipo in ['2', '3']:  # Pasivo o Capital
+            return self.haber - self.debe
+        elif tipo == '4':  # Gastos
+            return self.debe - self.haber
 
     def tipo_saldo(self):
         saldo =self.debe - self.haber
+        saldo = self.saldo_cuenta()
         if saldo > 0:
-            return "Deudor"
+            return "Deudor" if self.subTipoCuenta.tipoCuenta.codTipoCuenta[0] in ['1', '4'] else "Acreedor"
         elif saldo < 0:
             return "Acreedor"
         else:
