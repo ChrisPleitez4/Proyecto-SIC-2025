@@ -73,12 +73,12 @@ def transacciones_vista(request):
                         iva = monto * Decimal('0.13')
                         total = monto + iva
 
-                        # --- 1️⃣ Cuenta de Ingreso ---
+                        # --- 1️ Cuenta de Ingreso ---
                         cuenta.haber += monto
                         cuenta.save()
 
-                        # --- 2️⃣ IVA por pagar (1104) ---
-                        cIva = Cuenta.objects.get(codCuenta='1104')
+                        # --- 2️ IVA por pagar (2103) ---
+                        cIva = Cuenta.objects.get(codCuenta='2103')
                         cIva.haber += iva
                         cIva.save()
                         # Crear movimiento del IVA

@@ -75,6 +75,9 @@
             <a class="nav-link {% if request.path == '/transacciones/' %}active{% endif %}" href="{% url 'transacciones' %}">Transacciones</a>
           </li>
           <li class="nav-item">
+            <a class="nav-link {% if request.path == '/periodos/' %}active{% endif %}" href="{% url 'lista_periodos' %}">Periodo Contable</a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link {% if request.path == '/puestos/' %}active{% endif %}" href="{% url 'registrar_puesto' %}">Puestos</a>
           </li>
           <li class="nav-item">
