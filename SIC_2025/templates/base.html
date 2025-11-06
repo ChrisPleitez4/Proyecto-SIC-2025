@@ -97,9 +97,6 @@
             <a class="nav-link {% if request.path == '/transacciones/' %}active{% endif %}" href="{% url 'transacciones' %}">Transacciones</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link {% if request.path == '/periodos/' %}active{% endif %}" href="{% url 'lista_periodos' %}">Periodo Contable</a>
-          </li>
-          <li class="nav-item">
             <a class="nav-link {% if request.path == '/puestos/' %}active{% endif %}" href="{% url 'registrar_puesto' %}">Puestos</a>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle {% if '/proyectos/registrar/' in request.path or '/costoventa/' in request.path %}active{% endif %}" href="#" id="costosDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
