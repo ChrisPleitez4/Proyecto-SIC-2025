@@ -21,13 +21,16 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .then(res => res.json())
         .then(data => {
+            // Mostrar valores
             document.getElementById("tasa_cif_pro").innerText = toMoney(data.tasa_cif);
-            document.getElementById("total_cif").innerText = toMoney(data.total_cif_proyecto);
+            document.getElementById("total_cif").innerText = toMoney(data.total_cif_proyecto); // mostrar solo CIF del proyecto
             document.getElementById("variacion").innerText = toMoney(data.variacion);
             document.getElementById("utilidad").innerText = toMoney(data.utilidad);
             document.getElementById("costo_produccion").innerText = toMoney(data.costo_produccion);
-            document.getElementById("costo_venta").innerText = toMoney(data.costo_venta);
-            document.getElementById("anticipo").innerText = toMoney(data.anticipo);
+            document.getElementById("precio_venta").innerText = toMoney(data.precio_venta); // precio de venta total
+            document.getElementById("anticipo").innerText = toMoney(data.precio_venta * 0.25); // recalcular anticipo desde precio de venta
+            document.getElementById("iva").innerText = toMoney(data.precio_venta * 0.13); // recalcular IVA desde precio de venta
+            document.getElementById("anticipo_total").innerText = toMoney((data.precio_venta * 0.25) + (data.precio_venta * 0.13));
         });
     };
 
@@ -45,15 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const nombre = option.text;
         const salarioHora = parseFloat(document.getElementById("salarioHora").value);
         const cantidad = parseInt(document.getElementById("cantidadPersonas").value);
-
-        console.log({
-            id,
-            salarioHora,
-            cantidad,
-            salarioHoraRaw: document.getElementById("salarioHora").value,
-            cantidadRaw: document.getElementById("cantidadPersonas").value
-        });
-
 
         if (!id || isNaN(salarioHora) || isNaN(cantidad) || cantidad <= 0) {
             alert("Complete correctamente todos los campos del puesto.");
@@ -116,7 +110,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Guardar anticipo
     document.getElementById("guardarAnticipo").addEventListener("click", () => {
         const anticipo = parseFloat(document.getElementById("anticipo").innerText);
-        const costoVenta = parseFloat(document.getElementById("costo_venta").innerText);
+        const iva = parseFloat(document.getElementById("iva").innerText);
+        const anticipoTotal = parseFloat(document.getElementById("anticipo_total").innerText);
+        const precioVenta = parseFloat(document.getElementById("precio_venta").innerText);
 
         if (isNaN(anticipo) || anticipo <= 0) {
             alert("Debe calcular primero el costo antes de guardar el anticipo.");
@@ -131,7 +127,9 @@ document.addEventListener("DOMContentLoaded", () => {
             },
             body: new URLSearchParams({
                 anticipo: anticipo.toFixed(2),
-                costo_venta: costoVenta.toFixed(2)
+                iva: iva.toFixed(2),
+                anticipo_total: anticipoTotal.toFixed(2),
+                precio_venta: precioVenta.toFixed(2)
             })
         })
         .then(res => res.json())

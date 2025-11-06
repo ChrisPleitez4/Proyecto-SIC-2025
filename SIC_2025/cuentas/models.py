@@ -1,4 +1,5 @@
 from django.db import models
+from decimal import Decimal
 
 # Create your models here.
 # MODELO PARA TIPOCUENTA
@@ -27,22 +28,39 @@ class Cuenta(models.Model):
     subTipoCuenta = models.ForeignKey(SubTipoCuenta, on_delete=models.CASCADE,related_name='cuentas')
     debe = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     haber = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    saldo_final = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+
     def __str__(self):
         return f"{self.codCuenta} - {self.nombreCuenta}"
 
-
+    # ---------------------------------------
+    # 🔹 Saldo de la cuenta según naturaleza
+    # ---------------------------------------
     def saldo_cuenta(self):
-        saldo =self.debe - self.haber
-        return saldo
+        """Devuelve el saldo actual de la cuenta según su naturaleza contable."""
+        tipo = self.subTipoCuenta.tipoCuenta.codTipoCuenta[0]  # 1, 2, 3, 4 o 5
 
-    def tipo_saldo(self):
-        saldo =self.debe - self.haber
-        if saldo > 0:
-            return "Deudor"
-        elif saldo < 0:
-            return "Acreedor"
+        if tipo == '1':  # Activo
+            return self.debe - self.haber
+        elif tipo in ['2', '3']:  # Pasivo o Capital
+            return self.haber - self.debe
+        elif tipo == '4':  # Gastos
+            return self.debe - self.haber
+        elif tipo == '5':  # Ingresos
+            return self.haber - self.debe
         else:
             return "Saldo Cero"
-    
+
+    # ---------------------------------------
+    # 🔹 Tipo de saldo (deudor / acreedor)
+    # ---------------------------------------
+    def tipo_saldo(self):
+        saldo = self.saldo_cuenta()
+        if saldo > 0:
+            return "Deudor" if self.subTipoCuenta.tipoCuenta.codTipoCuenta[0] in ['1', '4'] else "Acreedor"
+        elif saldo < 0:
+            return "Acreedor" if self.subTipoCuenta.tipoCuenta.codTipoCuenta[0] in ['1', '4'] else "Deudor"
+        return "Saldo Cero"
+
     def es_ingreso(self):
         return self.codCuenta.startswith('51')

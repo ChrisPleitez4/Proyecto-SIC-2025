@@ -1,0 +1,86 @@
+/* General */
+body {
+    background-color: #eee;
+    color: #063940;
+}
+
+/* Tablas */
+table {
+    background-color: #FFFFFF;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+table th {
+    background-color: #195E63;
+    color: #ECE1C3;
+}
+
+table td {
+    vertical-align: middle;
+}
+
+/* Cards */
+.card {
+    background-color: #8EBDB6;
+    color: #063940;
+    border-radius: 10px;
+}
+
+/* Botones */
+.btn-primary {
+    background-color: #195E63;
+    border-color: #195E63;
+}
+
+.btn-primary:hover {
+    background-color: #3E838C;
+    border-color: #3E838C;
+}
+
+.btn-secondary {
+    background-color: #3E838C;
+    border-color: #3E838C;
+    color: #ECE1C3;
+}
+
+.btn-secondary:hover {
+    background-color: #195E63;
+    border-color: #195E63;
+    color: #ECE1C3;
+}
+
+.btn-success {
+    background-color: #063940;
+    border-color: #063940;
+}
+
+.btn-success:hover {
+    background-color: #195E63;
+    border-color: #195E63;
+}
+
+/* Modals */
+.modal-header.bg-primary {
+    background-color: #195E63 !important;
+}
+
+.modal-header.bg-secondary {
+    background-color: #3E838C !important;
+}
+
+.modal-content {
+    border-radius: 10px;
+}
+
+/* Inputs */
+input.form-control, select.form-select {
+    border-radius: 5px;
+    border: 1px solid #3E838C;
+}
+
+/* Resaltar valores importantes */
+#anticipo_total {
+    font: semibold 14px;
+    color: #063940;
+}

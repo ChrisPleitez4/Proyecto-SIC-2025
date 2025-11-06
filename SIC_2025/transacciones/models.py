@@ -1,15 +1,15 @@
 from django.db import models
 from cuentas.models import Cuenta
-from periodos.models import PeriodoContable
 
 # Create your models here
 class Transaccion(models.Model):
+
     descripcion = models.CharField(max_length=150)
     nro_transaccion = models.PositiveIntegerField()
     fecha = models.DateField()
     monto = models.DecimalField(max_digits=12, decimal_places=2)
     periodo = models.ForeignKey(
-        PeriodoContable,
+        'periodos.PeriodoContable',
         on_delete=models.PROTECT,  # no permite borrar un periodo si tiene transacciones
         related_name='transacciones',
         null=True,  # se asignará automáticamente al periodo activo
@@ -17,6 +17,7 @@ class Transaccion(models.Model):
     )
 
     def save(self, *args, **kwargs):
+        from periodos.models import PeriodoContable
         if not self.periodo:
             # asigna el periodo activo automáticamente
             self.periodo = PeriodoContable.objects.get(activo=True)

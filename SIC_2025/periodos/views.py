@@ -1,74 +1,83 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from decimal import Decimal
-from .models import PeriodoContable, SaldoCuenta
+from .models import PeriodoContable
 from .forms import PeriodoContableForm
 from cuentas.models import Cuenta
+from  decimal import Decimal
 
-
-# ------------------- PERIODO CONTABLE -------------------
+# ------------------- LISTA DE PERIODOS -------------------
 
 def lista_periodos(request):
     periodos = PeriodoContable.objects.all()
     return render(request, "lista_periodos.html", {"periodos": periodos})
 
 
+# ------------------- CREAR NUEVO PERIODO -------------------
+
 def crear_periodo(request):
     if request.method == "POST":
         form = PeriodoContableForm(request.POST)
         if form.is_valid():
-            # Verificar si hay un periodo activo
+            # 1️⃣ Verificar si hay un periodo activo
             if PeriodoContable.objects.filter(activo=True).exists():
-                messages.error(request, "Ya existe un periodo activo. Cierre el periodo actual antes de crear uno nuevo.")
+                messages.error(
+                    request,
+                    "Ya existe un periodo activo. Cierre el periodo actual antes de crear uno nuevo."
+                )
                 return redirect('lista_periodos')
 
-            # Guardar periodo como activo
+            # 2️⃣ Guardar el nuevo periodo
             nuevo_periodo = form.save(commit=False)
             nuevo_periodo.activo = True
             nuevo_periodo.save()
 
-            # Inicializar saldos del nuevo periodo con saldos finales del periodo anterior
-            inicializar_saldos_nuevo_periodo(nuevo_periodo)
+            # 3️⃣ Trasladar saldos del periodo anterior (si existe)
+            periodo_anterior = PeriodoContable.objects.filter(
+                fecha_fin__lt=nuevo_periodo.fecha_inicio
+            ).order_by('-fecha_fin').first()
 
-            messages.success(request, "Periodo creado correctamente.")
+            if periodo_anterior:
+                for cuenta in Cuenta.objects.all():
+                    tipo = cuenta.subTipoCuenta.tipoCuenta.codTipoCuenta[0]
+                    saldo = cuenta.saldo_final or Decimal('0.00')
+
+                    # Activos → saldo deudor
+                    if tipo == '1':
+                        cuenta.debe = saldo if saldo > 0 else Decimal('0.00')
+                        cuenta.haber = abs(saldo) if saldo < 0 else Decimal('0.00')
+
+                    # Pasivos y Capital → saldo acreedor
+                    elif tipo in ['2', '3']:
+                        cuenta.haber = saldo if saldo > 0 else Decimal('0.00')
+                        cuenta.debe = abs(saldo) if saldo < 0 else Decimal('0.00')
+
+                    # Ingresos y Gastos → reiniciar a cero
+                    elif tipo in ['4', '5']:
+                        cuenta.debe = Decimal('0.00')
+                        cuenta.haber = Decimal('0.00')
+
+                    cuenta.save()
+
+            messages.success(
+                request,
+                "Periodo creado correctamente con saldos iniciales trasladados."
+            )
             return redirect('lista_periodos')
+
     else:
         form = PeriodoContableForm()
+
     return render(request, 'crear_periodo.html', {'form': form})
 
+
+# ------------------- CERRAR PERIODO -------------------
 
 def cerrar_periodo(request, pk):
     periodo = get_object_or_404(PeriodoContable, pk=pk)
     try:
+        # Método del modelo ya calcula saldos finales según naturaleza contable
         periodo.cerrar_periodo()
-        # Calcular saldos finales al cerrar el periodo y trasladar utilidad
-        SaldoCuenta.calcular_saldos_periodo(periodo)
-        messages.success(request, "Periodo cerrado correctamente y saldos calculados.")
+        messages.success(request, "Periodo cerrado correctamente y saldos finales calculados.")
     except ValueError as e:
         messages.error(request, str(e))
     return redirect("lista_periodos")
-
-
-# ------------------- FUNCIONES AUXILIARES -------------------
-
-def inicializar_saldos_nuevo_periodo(periodo):
-    """Inicializa los saldos del nuevo periodo tomando el saldo final del periodo anterior"""
-    cuentas = Cuenta.objects.all()
-    periodo_anterior = PeriodoContable.objects.filter(fecha_fin__lt=periodo.fecha_inicio).order_by('-fecha_fin').first()
-
-    for cuenta in cuentas:
-        saldo_inicial = Decimal('0.00')
-        if periodo_anterior:
-            saldo_anterior_obj = SaldoCuenta.objects.filter(
-                cuenta=cuenta,
-                periodo=periodo_anterior
-            ).first()
-            if saldo_anterior_obj:
-                saldo_inicial = saldo_anterior_obj.saldo_final
-
-        # Crear el saldo inicial en el nuevo periodo
-        SaldoCuenta.objects.update_or_create(
-            cuenta=cuenta,
-            periodo=periodo,
-            defaults={'saldo_final': saldo_inicial}
-        )

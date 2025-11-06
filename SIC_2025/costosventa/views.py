@@ -35,8 +35,10 @@ def calcular_costo(request):
         variacion = (total_mod + total_cif_proyecto) * Decimal('0.30')
         costo_produccion = total_mod + total_cif_proyecto + variacion
         utilidad = costo_produccion * Decimal('0.25')
-        costo_venta = costo_produccion + utilidad
-        anticipo = costo_venta * Decimal('0.25')
+        precio_venta = costo_produccion + utilidad
+        anticipo = precio_venta * Decimal('0.25')
+        iva = precio_venta * Decimal('0.13')
+        anticipo_total = anticipo + iva
 
         return JsonResponse({
             'total_mod': float(total_mod),
@@ -46,8 +48,10 @@ def calcular_costo(request):
             'variacion': float(variacion),
             'costo_produccion': float(costo_produccion),
             'utilidad': float(utilidad),
-            'costo_venta': float(costo_venta),
-            'anticipo': float(anticipo)
+            'precio_venta': float(precio_venta),
+            'anticipo': float(anticipo),
+            'iva': float(iva),
+            'anticipo_total': float(anticipo_total)
         })
     else:
         puestos = Puesto.objects.all()
@@ -55,24 +59,27 @@ def calcular_costo(request):
 
 def guardar_anticipo(request):
     if request.method == 'POST':
-        monto = Decimal(request.POST.get('anticipo', 0))
-        costo_venta = Decimal(request.POST.get('costo_venta', 0))
+        monto_caja = Decimal(request.POST.get('anticipo_total', 0))
+        monto_anticipo = Decimal(request.POST.get('anticipo', 0))
+        monto_iva = Decimal(request.POST.get('iva', 0))
+        precio_venta = Decimal(request.POST.get('precio_venta', 0))
 
         # Cuentas involucradas
         cuenta_caja = Cuenta.objects.get(nombreCuenta="Caja")
         cuenta_anticipo = Cuenta.objects.get(nombreCuenta="Anticipo de clientes")
+        cuenta_iva = Cuenta.objects.get(nombreCuenta="Retenciones por pagar (Débito Fiscal)")
 
-        descripcion = f"Anticipo del proyecto con un total de ${costo_venta} estimado."
+        descripcion = f"Anticipo del proyecto con un total de ${precio_venta} estimado."
 
         transaccion = Transaccion.objects.create(
             descripcion=descripcion,
             fecha=timezone.now(),
-            monto=monto
+            monto=monto_caja
         )
 
         # Movimiento Deudor (Caja)
         Movimiento.objects.create(
-            monto=monto,
+            monto=monto_caja,
             tipo=True,  # Deudora
             cuenta=cuenta_caja,
             transaccion=transaccion
@@ -80,9 +87,17 @@ def guardar_anticipo(request):
 
         # Movimiento Acreedor (Anticipo de clientes)
         Movimiento.objects.create(
-            monto=monto,
+            monto=monto_anticipo,
             tipo=False,  # Acreedora
             cuenta=cuenta_anticipo,
+            transaccion=transaccion
+        )
+
+        # Movimiento iva (Anticipo de clientes)
+        Movimiento.objects.create(
+            monto=monto_iva,
+            tipo=False,  # Acreedora
+            cuenta=cuenta_iva,
             transaccion=transaccion
         )
 

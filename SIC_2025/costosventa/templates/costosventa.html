@@ -2,9 +2,13 @@
 {% block title %}Estimación de costo de venta{% endblock %}
 {% load static %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/costosventa.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-    <h3 class="mb-3">Cálculo de costo de venta estimado</h3>
+    <h3 class="mb-3 text-primary">Cálculo de costo de venta estimado</h3>
 
     <div class="mb-3">
         <label for="horas_persona" class="form-label">Cantidad de horas por persona:</label>
@@ -45,7 +49,7 @@
         </div>
 
         <div class="col-md-4">
-            <div class="card p-3">
+            <div class="card p-3 shadow-sm border-primary">
                 <p><b>Tasa CIF:</b> $<span id="tasa_cif_pro">0.00</span></p>
                 <p><b>Total CIF:</b> $<span id="total_cif">0.00</span></p>
                 <p><b>Variación (30%):</b> $<span id="variacion">0.00</span></p>
@@ -54,10 +58,12 @@
         </div>
     </div>
 
-    <div class="mt-3">
+    <div class="mt-3 card p-3 shadow-sm border-success">
         <p><b>Costo de producción:</b> $<span id="costo_produccion">0.00</span></p>
-        <p><b>Precio de venta:</b> $<span id="costo_venta">0.00</span></p>
+        <p><b>Precio de venta:</b> $<span id="precio_venta">0.00</span></p>
         <p><b>Anticipo (25%):</b> $<span id="anticipo">0.00</span></p>
+        <p><b>IVA (13%):</b> $<span id="iva">0.00</span></p>
+        <p><b>Anticipo total:</b> $<span id="anticipo_total">0.00</span></p>
         <button id="guardarAnticipo" class="btn btn-success">Guardar anticipo</button>
     </div>
 </div>
@@ -65,8 +71,8 @@
 <!-- Modal Puesto -->
 <div class="modal fade" id="modalPuesto" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header"><h5>Agregar Puesto</h5></div>
+    <div class="modal-content border-primary">
+      <div class="modal-header bg-primary text-white"><h5>Agregar Puesto</h5></div>
       <div class="modal-body">
         <label>Puesto:</label>
         <select id="puestoSelect" class="form-select">
@@ -93,8 +99,8 @@
 <!-- Modal CIF -->
 <div class="modal fade" id="modalCif" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header"><h5>Agregar CIF</h5></div>
+    <div class="modal-content border-secondary">
+      <div class="modal-header bg-secondary text-white"><h5>Agregar CIF</h5></div>
       <div class="modal-body">
         <label>Descripción:</label>
         <input type="text" id="descripcionCif" class="form-control">
