@@ -46,6 +46,7 @@ def registrar_puesto(request):
             vacaciones_semanales = ((salario_nominal * dias_vacaciones) * (1 + recargo_vacaciones + seguro_social + afp+incaf)) / 52
             aguinaldo_semanal = (salario_nominal * dias_aguinaldo) / 52
             salario_cancelado = costo_semanal + septimo + vacaciones_semanales
+            salarioMes_cancelado=salario_cancelado*4
             isss = salario_cancelado * seguro_social
             afp_valor = salario_cancelado * afp
             incaf_valor=salario_cancelado*incaf
@@ -63,7 +64,8 @@ def registrar_puesto(request):
                 "Séptimo (dos días)": septimo,
                 "Vacaciones semanales": round(vacaciones_semanales, 2),
                 "Aguinaldo semanal": round(aguinaldo_semanal, 2),
-                "Cálculo de salario cancelado": round(salario_cancelado, 2),
+                "Cálculo de salario Semanal cancelado": round(salario_cancelado, 2),
+                "Cálculo de salario Mensual cancelado": round(salarioMes_cancelado, 2),
                 "ISSS": round(isss, 2),
                 "AFP": round(afp_valor, 2),
                 "INCAF": round(incaf_valor, 2),
