@@ -72,16 +72,6 @@
         <td class="text-end {% if utilidad_bruta < 0 %}negativo{% else %}positivo{% endif %}">
           {{ utilidad_bruta|floatformat:2|cut:"-" }}
         </td></tr>
-
-      <tr><td>Impuesto (13%)</td>
-        <td class="text-end {% if impuesto < 0 %}negativo{% else %}positivo{% endif %}">
-          {{ impuesto|floatformat:2|cut:"-" }}
-        </td></tr>
-
-      <tr><td>Utilidad Neta</td>
-        <td class="text-end {% if utilidad_neta < 0 %}negativo{% else %}positivo{% endif %}">
-          {{ utilidad_neta|floatformat:2|cut:"-" }}
-        </td></tr>
     </tbody>
   </table>
 

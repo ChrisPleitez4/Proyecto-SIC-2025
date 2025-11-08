@@ -4,6 +4,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const horasInput = document.getElementById("horas_persona");
 
+    // ===== Prefill desde UCP (localStorage.totalHP) =====
+    (function prefillHorasDesdeUCP(){
+        const hp = parseFloat(localStorage.getItem("totalHP"));
+        if (Number.isFinite(hp) && hp > 0) {
+            horasInput.value = hp.toFixed(2);
+        }
+    })();
+
+    // Si en otra pestaña cambian el UCP → totalHP, reflejarlo aquí
+    window.addEventListener("storage", (e) => {
+        if (e.key === "totalHP") {
+            const v = parseFloat(e.newValue);
+            if (Number.isFinite(v) && v > 0) {
+                horasInput.value = v.toFixed(2);
+                actualizarCalculos();
+            }
+        }
+    });
+
     const toMoney = num => parseFloat(num || 0).toFixed(2);
 
     const actualizarCalculos = () => {
@@ -21,15 +40,14 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .then(res => res.json())
         .then(data => {
-            // Mostrar valores
             document.getElementById("tasa_cif_pro").innerText = toMoney(data.tasa_cif);
-            document.getElementById("total_cif").innerText = toMoney(data.total_cif_proyecto); // mostrar solo CIF del proyecto
-            document.getElementById("variacion").innerText = toMoney(data.variacion);
-            document.getElementById("utilidad").innerText = toMoney(data.utilidad);
+            document.getElementById("total_cif").innerText    = toMoney(data.total_cif_proyecto);
+            document.getElementById("variacion").innerText    = toMoney(data.variacion);
+            document.getElementById("utilidad").innerText     = toMoney(data.utilidad);
             document.getElementById("costo_produccion").innerText = toMoney(data.costo_produccion);
-            document.getElementById("precio_venta").innerText = toMoney(data.precio_venta); // precio de venta total
-            document.getElementById("anticipo").innerText = toMoney(data.precio_venta * 0.25); // recalcular anticipo desde precio de venta
-            document.getElementById("iva").innerText = toMoney(data.precio_venta * 0.13); // recalcular IVA desde precio de venta
+            document.getElementById("precio_venta").innerText     = toMoney(data.precio_venta);
+            document.getElementById("anticipo").innerText     = toMoney(data.precio_venta * 0.25);
+            document.getElementById("iva").innerText          = toMoney(data.precio_venta * 0.13);
             document.getElementById("anticipo_total").innerText = toMoney((data.precio_venta * 0.25) + (data.precio_venta * 0.13));
         });
     };
@@ -68,7 +86,6 @@ document.addEventListener("DOMContentLoaded", () => {
             </tr>`;
         document.querySelector("#tablaPuestos tbody").insertAdjacentHTML("beforeend", fila);
 
-        // Limpiar modal
         select.value = "";
         document.getElementById("salarioHora").value = "";
         document.getElementById("cantidadPersonas").value = "";
@@ -97,7 +114,6 @@ document.addEventListener("DOMContentLoaded", () => {
             </tr>`;
         document.querySelector("#tablaCif tbody").insertAdjacentHTML("beforeend", fila);
 
-        // Limpiar modal
         document.getElementById("descripcionCif").value = "";
         document.getElementById("montoCif").value = "";
         bootstrap.Modal.getInstance(document.getElementById("modalCif")).hide();
@@ -150,4 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         return cookieValue;
     }
+
+    // Cálculo inicial (por si ya venía totalHP)
+    actualizarCalculos();
 });

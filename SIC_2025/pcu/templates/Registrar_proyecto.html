@@ -386,7 +386,7 @@
                     <tr>
                         <td><b>E5</b></td>
                         <td style="text-align: left;">Motivación</td>
-                        <td>0.5</td>
+                        <td>1</td>
                         <td id="EvaEf5"></td>
                         <td id="ImEf5"></td>
                     </tr>
@@ -578,6 +578,12 @@
                 </tfoot>
             </table>
         </div>
+    </div>
+    <div class="d-flex justify-content-end mt-3">
+        <a href="{% url 'calcular_costo' %}" class="btn btn-primary" 
+        style="background-color:#37474f; border:none;">
+            Calcular costo de venta
+        </a>
     </div>
 
     <button id="clearButton" type="reset" class="btn btn-pcu-danger mt-4 w-100" onclick="clearData()">Limpiar Todos los Datos</button>
