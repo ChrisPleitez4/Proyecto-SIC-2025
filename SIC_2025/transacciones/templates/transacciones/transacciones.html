@@ -99,6 +99,7 @@
                 <div id="mensaje_ingreso_{{ t.id }}" class="form-text text-success fw-bold mt-2" style="display: none;">
                   Cuenta de ingreso. Solo registre esta cuenta; IVA y caja se generan automáticamente.
                 </div>
+
                 </div>
                 {% if movimiento_form.errors.cuenta %}
                   <div class="text-danger small">{{ movimiento_form.errors.cuenta.0 }}</div>
@@ -223,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const selectedOption = this.options[this.selectedIndex];
         const codCuenta = selectedOption ? selectedOption.getAttribute('data-codigo') : null;
-
+        
         // primero buscamos el mensaje dentro del modal (mejor scope)
         let mensajeDiv = null;
         if (transaccionId) {
@@ -238,7 +239,15 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("🧩 transaccionId:", transaccionId);
         console.log("🧩 mensajeDiv encontrado:", mensajeDiv);
 
-        if (codCuenta && codCuenta.startsWith('51')) {
+        const tipoSelect = modal.querySelector(`#id_tipo_${transaccionId}`);
+        let tipoValor = null;
+
+        if (tipoSelect) {
+            tipoValor = tipoSelect.options[tipoSelect.selectedIndex].value;
+        }
+        console.log("🔍 tipoValor:", tipoValor);
+
+        if (codCuenta && codCuenta.startsWith('51') && tipoValor === 'False') {
           console.log("✅ Es ingreso.");
           if (mensajeDiv) {
             // si mensajeDiv es el contenedor, inyectamos texto; si es el div específico, lo mostramos
@@ -272,6 +281,16 @@ document.addEventListener('DOMContentLoaded', function() {
       // Asegurarnos de no duplicar listeners: remover antes (si existiera)
       select.removeEventListener('change', handleChange);
       select.addEventListener('change', handleChange);
+     
+     
+      // listener del select tipo (Acreedora/Deudora)
+      const tipoSelect = modal.querySelector(`#id_tipo_${select.getAttribute('data-transaccion') || select.id.match(/id_cuenta_(\d+)$/)[1]}`);
+      if (tipoSelect) {
+        tipoSelect.addEventListener('change', function () {
+          handleChange.call(select);
+        });
+      }
+    
     });
   });
 });
