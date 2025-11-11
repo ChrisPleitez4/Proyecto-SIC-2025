@@ -139,6 +139,9 @@ def guardar_anticipo(request):
         cuenta=cuenta_caja,
         transaccion=transaccion
     )
+    #actualizar cuenta Aldair0t
+    cuenta_caja.debe += monto_caja
+    cuenta_caja.save()
 
     # Haber: Anticipo de clientes
     Movimiento.objects.create(
@@ -147,6 +150,8 @@ def guardar_anticipo(request):
         cuenta=cuenta_anticipo,
         transaccion=transaccion
     )
+    cuenta_anticipo.haber += monto_anticipo
+    cuenta_anticipo.save()
 
     # Haber: Débito fiscal (IVA)
     Movimiento.objects.create(
@@ -155,5 +160,7 @@ def guardar_anticipo(request):
         cuenta=cuenta_iva,
         transaccion=transaccion
     )
+    cuenta_iva.haber += monto_iva
+    cuenta_iva.save()
 
     return JsonResponse({'mensaje': 'Anticipo guardado correctamente.'})
