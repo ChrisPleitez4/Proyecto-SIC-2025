@@ -9,9 +9,9 @@
     <h2>Periodos Contables</h2>
 
     {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-        {% endfor %}
+       {% for message in messages %}
+    <div class="text-danger small mt-1 {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
     {% endif %}
 
     <div class="acciones">

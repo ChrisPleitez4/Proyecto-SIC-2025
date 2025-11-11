@@ -11,8 +11,8 @@
 
     {% if messages %}
         {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-        {% endfor %}
+    <div class="text-danger small mt-1 {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
     {% endif %}
 
     <form method="post" id="form-periodo">
@@ -27,16 +27,4 @@
         </div>
     </form>
 </div>
-
-<script>
-document.getElementById('form-periodo').addEventListener('submit', function(e) {
-    const fechaInicio = new Date(document.getElementById('id_fecha_inicio').value);
-    const fechaFin = new Date(document.getElementById('id_fecha_fin').value);
-
-    if (fechaFin < fechaInicio) {
-        e.preventDefault();
-        alert('La fecha de fin no puede ser anterior a la fecha de inicio.');
-    }
-});
-</script>
 {% endblock %}
