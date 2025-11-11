@@ -64,3 +64,7 @@ class Cuenta(models.Model):
 
     def es_ingreso(self):
         return self.codCuenta.startswith('51')
+    
+    def es_compra(self):
+        compras= ['1202', '1203', '1204', '1205', '1206'] # lista de códigos exactos
+        return self.codCuenta in compras

@@ -97,9 +97,11 @@
                 </select>
                   <div class="mensaje-cuenta mt-2">
                 <div id="mensaje_ingreso_{{ t.id }}" class="form-text text-success fw-bold mt-2" style="display: none;">
-                  Cuenta de ingreso. Solo registre esta cuenta; IVA y caja se generan automáticamente.
+                Venta detectada. IVA y Caja se generarán automáticamente; solo registre esta cuenta.
                 </div>
-
+                <div id="mensaje_compra_{{ t.id }}" class="form-text text-success fw-bold mt-2" style="display: none;">
+                  Se ha detectado una compra de activos. Las cuentas de IVA y Caja se generarán automáticamente; solo registre esta cuenta.
+                </div>
                 </div>
                 {% if movimiento_form.errors.cuenta %}
                   <div class="text-danger small">{{ movimiento_form.errors.cuenta.0 }}</div>
@@ -235,9 +237,20 @@ document.addEventListener('DOMContentLoaded', function() {
           mensajeDiv = modal.querySelector('.mensaje-cuenta');
         }
 
+        //Buscamos el mensaje de compra 
+        let mensajeDivC = null;
+        if (transaccionId) {
+          mensajeDivC = modal.querySelector(`#mensaje_compra_${transaccionId}`);
+        }
+        // fallback: si no lo encontramos por id, buscar el contenedor general .mensaje-cuenta
+        if (!mensajeDivC) {
+          mensajeDivC = modal.querySelector('.mensaje-cuenta');
+        }
+
         console.log("📘 Cuenta seleccionada:", codCuenta);
         console.log("🧩 transaccionId:", transaccionId);
-        console.log("🧩 mensajeDiv encontrado:", mensajeDiv);
+        console.log("🧩 mensajeDiv Ingreso encontrado:", mensajeDiv);
+        console.log("🧩 mensajeDiv Compra encontrado:", mensajeDivC);
 
         const tipoSelect = modal.querySelector(`#id_tipo_${transaccionId}`);
         let tipoValor = null;
@@ -273,16 +286,42 @@ document.addEventListener('DOMContentLoaded', function() {
             }
           }
         }
+        
+        // IF para compras
+        const cuentasCompras = ['1202', '1203', '1204', '1205', '1206']; // Agregar más códigos de cuenta de compra según sea necesario
+        if (codCuenta && cuentasCompras.includes(codCuenta) && tipoValor === 'True') {
+          console.log("✅ Es Compra.");
+          if (mensajeDivC) {
+            // si mensajeDivC es el contenedor, inyectamos texto; si es el div específico, lo mostramos
+            if (mensajeDivC.id && mensajeDivC.id.startsWith('mensaje_compra_')) {
+              mensajeDivC.style.display = 'block';
+              mensajeDivC.style.visibility = 'visible';
+              mensajeDivC.style.opacity = '1';
+            } else {
+              // contenedor genérico -> asignar HTML (mantener estilo verde)
+              mensajeDivC.innerHTML = '<div class="form-text text-success fw-bold mt-2">Esta cuenta es de COMPRA y se calculará automáticamente su IVA.</div>';
+            }
+          } else {
+            console.warn("⚠️ No se encontró ningún elemento para mostrar el mensaje.");
+          }
+        } else {
+          console.log("❌ No es Compra.");
+          if (mensajeDivC) {
+            // ocultar: si es id específico, ocultar; si es contenedor, limpiar
+            if (mensajeDivC.id && mensajeDivC.id.startsWith('mensaje_compra_')) {
+              mensajeDivC.style.display = 'none';
+            } else {
+              mensajeDivC.innerHTML = '';
+            }
+          }
+        }
       };
-
       // Si ya se había seleccionado algo por defecto, ejecutar una vez para precargar el estado
       handleChange.call(select);
 
       // Asegurarnos de no duplicar listeners: remover antes (si existiera)
       select.removeEventListener('change', handleChange);
       select.addEventListener('change', handleChange);
-     
-     
       // listener del select tipo (Acreedora/Deudora)
       const tipoSelect = modal.querySelector(`#id_tipo_${select.getAttribute('data-transaccion') || select.id.match(/id_cuenta_(\d+)$/)[1]}`);
       if (tipoSelect) {
@@ -295,14 +334,4 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 </script>
-
-
-
-
-
-
-
-
-
-
 {% endblock %}

@@ -100,6 +100,39 @@ def transacciones_vista(request):
                             monto=total,
                             tipo=True  # Debe
                     )
+                    elif cuenta.es_compra() and movimiento.tipo == True:
+                        print(">>> ENTRÓ AL BLOQUE DE COMPRA CON IVA <<<")
+                        monto = movimiento.monto
+                        iva = monto * Decimal('0.13')
+                        total = monto + iva
+
+                        # --- 1️ Cuenta de Compra (Activo) ---
+                        cuenta.debe += monto
+                        cuenta.save()
+
+                        # --- 2️ IVA crédito fiscal (1104) ---
+                        cIva = Cuenta.objects.get(codCuenta='1104')
+                        cIva.debe += iva
+                        cIva.save()
+                        # Crear movimiento del IVA
+                        Movimiento.objects.create(
+                            cuenta=cIva,
+                            transaccion=transaccion,
+                            monto=iva,
+                            tipo=True  # Debe
+                        )
+
+                        # --- 3️⃣ Caja (1101) ---
+                        cCaja = Cuenta.objects.get(codCuenta='1101')
+                        cCaja.haber += total
+                        cCaja.save()
+                        # Crear movimiento de la Caja
+                        Movimiento.objects.create(
+                            cuenta=cCaja,
+                            transaccion=transaccion,
+                            monto=total,
+                            tipo=False  # Haber
+                        )
                     else:
                         print(">>> ENTRÓ AL BLOQUE NORNMAL <<<")
                         if movimiento.tipo:  # True = deudora
