@@ -1,37 +1,75 @@
-from django.shortcuts import render
+from decimal import Decimal, InvalidOperation
+import json
+
 from django.http import JsonResponse
+from django.shortcuts import render
 from django.utils import timezone
-from decimal import Decimal
+
 from puestos.models import Puesto
 from transacciones.models import Transaccion, Movimiento
 from cuentas.models import Cuenta
 
+
+def _to_decimal(value, default='0'):
+    """
+    Convierte un string/número a Decimal de forma segura.
+    Si falla, retorna Decimal(default).
+    """
+    try:
+        if value is None:
+            return Decimal(default)
+        return Decimal(str(value).strip() or default)
+    except (InvalidOperation, ValueError, TypeError):
+        return Decimal(default)
+
+
 def calcular_costo(request):
+    """
+    GET  -> Renderiza el template con el catálogo de puestos.
+    POST -> Recibe horas_persona, puestos[], cifs[] y devuelve cálculos en JSON.
+    """
     if request.method == 'POST':
         data = request.POST
+
+        # Horas por persona (puede venir con decimales desde UCP)
+        horas_persona = _to_decimal(data.get('horas_persona'), '0')
+
+        # Listas (JSON) desde el front: evitar eval, usar json.loads con fallback.
         try:
-            horas_persona = Decimal(str(data.get('horas_persona', '0')).strip() or '0')
-        except:
-            horas_persona = Decimal('0')
+            puestos = json.loads(data.get('puestos', '[]'))  # [{id, nombre, salarioHora, cantidad, costoTotal}]
+        except json.JSONDecodeError:
+            puestos = []
 
-        puestos = eval(data.get('puestos', '[]'))  # lista de dicts
-        cifs = eval(data.get('cifs', '[]'))        # lista de dicts
+        try:
+            cifs = json.loads(data.get('cifs', '[]'))        # [{descripcion, monto}]
+        except json.JSONDecodeError:
+            cifs = []
 
-        # Cálculos
-        total_mod = sum(
-            Decimal(p['salarioHora']) * Decimal(p['cantidad']) * horas_persona
-            for p in puestos
-        )
+        # Cálculo de Mano de Obra Directa (MOD)
+        total_mod = Decimal('0')
+        total_personas = Decimal('0')
+        for p in puestos:
+            salario_hora = _to_decimal(p.get('salarioHora'), '0')
+            cantidad = _to_decimal(p.get('cantidad'), '0')
+            total_mod += salario_hora * cantidad * horas_persona
+            total_personas += cantidad
 
-        total_cif = sum(Decimal(c['monto']) for c in cifs)
-        total_personas = sum(Decimal(p['cantidad']) for p in puestos)
+        # Suma de CIF ingresados
+        total_cif = Decimal('0')
+        for c in cifs:
+            total_cif += _to_decimal(c.get('monto'), '0')
 
-        total_horas_mes = total_personas * 8 * 5 * 4  # horas trabajadas al mes
-        tasa_cif = (total_cif / total_horas_mes) if total_horas_mes > 0 else 0
+        # Tasa CIF mensual: (total CIF mensual) / (horas trabajadas mes)
+        # 8h * 5d * 4sem = 160 horas mensuales por persona (aprox)
+        horas_mes_por_persona = Decimal('160')
+        total_horas_mes = total_personas * horas_mes_por_persona
+        tasa_cif = (total_cif / total_horas_mes) if total_horas_mes > 0 else Decimal('0')
 
+        # CIF aplicado al proyecto: (personas * horas del proyecto * tasa_cif)
         total_horas_proyecto = total_personas * horas_persona
         total_cif_proyecto = total_horas_proyecto * tasa_cif
 
+        # Variación 30%, Utilidad 25%, Precio, etc.
         variacion = (total_mod + total_cif_proyecto) * Decimal('0.30')
         costo_produccion = total_mod + total_cif_proyecto + variacion
         utilidad = costo_produccion * Decimal('0.25')
@@ -51,55 +89,71 @@ def calcular_costo(request):
             'precio_venta': float(precio_venta),
             'anticipo': float(anticipo),
             'iva': float(iva),
-            'anticipo_total': float(anticipo_total)
+            'anticipo_total': float(anticipo_total),
         })
-    else:
-        puestos = Puesto.objects.all()
-        return render(request, 'costosventa.html', {'puestos': puestos})
+
+    # GET
+    puestos = Puesto.objects.all()
+    return render(request, 'costosventa.html', {'puestos': puestos})
+
 
 def guardar_anticipo(request):
-    if request.method == 'POST':
-        monto_caja = Decimal(request.POST.get('anticipo_total', 0))
-        monto_anticipo = Decimal(request.POST.get('anticipo', 0))
-        monto_iva = Decimal(request.POST.get('iva', 0))
-        precio_venta = Decimal(request.POST.get('precio_venta', 0))
+    """
+    Guarda el anticipo (25%) + IVA del precio de venta como una transacción:
+     - Debe:  Caja (por el anticipo total cobrado)
+     - Haber: Anticipo de clientes (anticipo sin IVA)
+     - Haber: Débito fiscal (IVA del anticipo)
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
 
-        # Cuentas involucradas
+    monto_caja = _to_decimal(request.POST.get('anticipo_total'), '0')
+    monto_anticipo = _to_decimal(request.POST.get('anticipo'), '0')
+    monto_iva = _to_decimal(request.POST.get('iva'), '0')
+    precio_venta = _to_decimal(request.POST.get('precio_venta'), '0')
+
+    # Validación mínima
+    if monto_caja <= 0 or monto_anticipo <= 0 or monto_iva < 0:
+        return JsonResponse({'error': 'Montos inválidos para registrar el anticipo.'}, status=400)
+
+    # Cuentas involucradas (asegúrate que existan con esos nombres)
+    try:
         cuenta_caja = Cuenta.objects.get(nombreCuenta="Caja")
         cuenta_anticipo = Cuenta.objects.get(nombreCuenta="Anticipo de clientes")
         cuenta_iva = Cuenta.objects.get(nombreCuenta="Retenciones por pagar (Débito Fiscal)")
+    except Cuenta.DoesNotExist as e:
+        return JsonResponse({'error': f'Falta la cuenta: {e}'}, status=400)
 
-        descripcion = f"Anticipo del proyecto con un total de ${precio_venta} estimado."
+    descripcion = f"Anticipo del proyecto con un total estimado de ${precio_venta}."
 
-        transaccion = Transaccion.objects.create(
-            descripcion=descripcion,
-            fecha=timezone.now(),
-            monto=monto_caja
-        )
+    transaccion = Transaccion.objects.create(
+        descripcion=descripcion,
+        fecha=timezone.now(),
+        monto=monto_caja
+    )
 
-        # Movimiento Deudor (Caja)
-        Movimiento.objects.create(
-            monto=monto_caja,
-            tipo=True,  # Deudora
-            cuenta=cuenta_caja,
-            transaccion=transaccion
-        )
+    # Debe: Caja
+    Movimiento.objects.create(
+        monto=monto_caja,
+        tipo=True,  # Deudora
+        cuenta=cuenta_caja,
+        transaccion=transaccion
+    )
 
-        # Movimiento Acreedor (Anticipo de clientes)
-        Movimiento.objects.create(
-            monto=monto_anticipo,
-            tipo=False,  # Acreedora
-            cuenta=cuenta_anticipo,
-            transaccion=transaccion
-        )
+    # Haber: Anticipo de clientes
+    Movimiento.objects.create(
+        monto=monto_anticipo,
+        tipo=False,  # Acreedora
+        cuenta=cuenta_anticipo,
+        transaccion=transaccion
+    )
 
-        # Movimiento iva (Anticipo de clientes)
-        Movimiento.objects.create(
-            monto=monto_iva,
-            tipo=False,  # Acreedora
-            cuenta=cuenta_iva,
-            transaccion=transaccion
-        )
+    # Haber: Débito fiscal (IVA)
+    Movimiento.objects.create(
+        monto=monto_iva,
+        tipo=False,  # Acreedora
+        cuenta=cuenta_iva,
+        transaccion=transaccion
+    )
 
-        return JsonResponse({'mensaje': 'Anticipo guardado correctamente.'})
-    return JsonResponse({'error': 'Método no permitido'}, status=405)
+    return JsonResponse({'mensaje': 'Anticipo guardado correctamente.'})

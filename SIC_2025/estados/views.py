@@ -78,17 +78,18 @@ def estados_financieros(request):
     total_gastos = sum(c.saldo_cuenta() for c in gastos)
 
     utilidad_bruta = total_ingresos - total_gastos
-    impuesto = (utilidad_bruta * Decimal('0.13')).quantize(Decimal('0.01'))
-    utilidad_neta = (utilidad_bruta - impuesto).quantize(Decimal('0.01'))
+
+    # 🚫 SIN IMPUESTO NI UTILIDAD NETA
+    impuesto = Decimal('0.00')          # Se mantiene en contexto por compatibilidad
+    utilidad_neta = utilidad_bruta      # Alias para no romper plantillas existentes
 
     # -----------------------------
     # 💰 Estado de Capital
     # -----------------------------
-    capital_cuenta = cuentas.filter(codCuenta='3101').first() # 3101 es el cod de Capital Social
+    capital_cuenta = cuentas.filter(codCuenta='3101').first()  # 3101 = Capital Social
     capital_social = Decimal('0.00')
     capital_inicial = Decimal('0.00')
     capital_movimientos = Decimal('0.00')
-    
 
     if capital_cuenta:
         tipo = capital_cuenta.subTipoCuenta.tipoCuenta.codTipoCuenta[0]
@@ -96,7 +97,7 @@ def estados_financieros(request):
         saldo_inicial = capital_cuenta.saldo_final or Decimal('0.00')
         if tipo in ['2', '3']:  # Capital → saldo acreedor
             capital_inicial = saldo_inicial
-        # movimientos del periodo
+        # movimientos del periodo (acreedor - deudor)
         movimientos = Movimiento.objects.filter(
             cuenta=capital_cuenta,
             transaccion__fecha__range=[fecha_inicio, fecha_fin]
@@ -104,6 +105,7 @@ def estados_financieros(request):
         capital_movimientos = sum(m.monto for m in movimientos if not m.tipo) - sum(m.monto for m in movimientos if m.tipo)
 
     capital_social = (capital_inicial + capital_movimientos).quantize(Decimal('0.01'))
+    # Capital final suma utilidad BRUTA (ya no hay impuesto)
     capital_final = (capital_inicial + capital_movimientos + utilidad_bruta).quantize(Decimal('0.01'))
 
     # -----------------------------
@@ -132,6 +134,7 @@ def estados_financieros(request):
 
     total_activos = sum(c['saldo'] for c in activos_data)
     total_pasivos = sum(c['saldo'] for c in pasivos_data)
+    # En el balance presentas un solo Capital = capital_final
     total_patrimonio = capital_final
     tipo_saldo_capital = 'Acreedor' if capital_final >= 0 else 'Deudor'
 
@@ -149,18 +152,24 @@ def estados_financieros(request):
         "total_ingresos": total_ingresos,
         "total_gastos": total_gastos,
         "utilidad_bruta": utilidad_bruta,
-        "impuesto": impuesto,
-        "utilidad_neta": utilidad_neta,
+
+        # Quedan en contexto por compatibilidad, pero no afectan nada
+        "impuesto": impuesto,              # = 0.00
+        "utilidad_neta": utilidad_neta,    # = utilidad_bruta
+
         "capital_inicial": capital_inicial,
         "capital_social": capital_social,
         "capital_final": capital_final,
+
         "activos": activos_data,
         "pasivos": pasivos_data,
         "capital": capital_data,
+
         "total_activos": total_activos,
         "total_pasivos": total_pasivos,
         "total_patrimonio": total_patrimonio,
-        "tipo_saldo_capital": capital_cuenta.tipo_saldo(),
+        "tipo_saldo_capital": tipo_saldo_capital,
+
         "diferencia_balance": diferencia_balance,
         "fecha_inicio": fecha_inicio_str,
         "fecha_fin": fecha_fin_str,
