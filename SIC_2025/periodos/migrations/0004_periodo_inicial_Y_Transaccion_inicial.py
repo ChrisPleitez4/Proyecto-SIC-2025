@@ -2,10 +2,14 @@
 
 from django.db import migrations
 from datetime import date,timedelta
+from decimal import Decimal
 
 def establecer_periodo_inicial(apps, schema_editor):
     PeriodoContable = apps.get_model('periodos', 'PeriodoContable')
     Transaccion = apps.get_model('transacciones', 'Transaccion')
+    Movimiento = apps.get_model('transacciones', 'Movimiento')
+    Cuenta = apps.get_model('cuentas', 'Cuenta')
+    
     fecha_hoy = date.today()
     fecha_fin = fecha_hoy + timedelta(days=5)
     
@@ -17,27 +21,97 @@ def establecer_periodo_inicial(apps, schema_editor):
         }
     )
     #contantes de montos 
-    Mobiliario_oficina=3130.00
-    Equipo_computo_redes=15330.00
-    SW_herramientas =2000.00
-    Papeleria_suministros=72.50
-    Otros_equipos = 375.00
+    Mobiliario_oficina=Decimal('3130.00')
+    Equipo_computo_redes=Decimal('15330.00')
+    SW_herramientas =Decimal('2000.00')
+    Papeleria_suministros=Decimal('72.50')
+    Otros_equipos = Decimal('375.00')
     Capital_social = Mobiliario_oficina + Equipo_computo_redes + SW_herramientas + Papeleria_suministros + Otros_equipos
     
+    #obtener las cuentas 
+    CMobiliario = Cuenta.objects.get(codCuenta='1203')
+    CEquipo = Cuenta.objects.get(codCuenta='1202')  
+    Csoftware = Cuenta.objects.get(codCuenta='1205')
+    CPapeleria = Cuenta.objects.get(codCuenta='1204')
+    COtros = Cuenta.objects.get(codCuenta='1206')
+    CCapitalSocial = Cuenta.objects.get(codCuenta='3101')
+    
+    
     #crear la transaccion
-    Transaccion.objects.get_or_create(
-        descripcion='Transacción Inicial para el Período Inicial',
-        fecha=fecha_hoy,
-        monto=Capital_social,
-        periodo=periodo_inicial
+    T_inicial = Transaccion.objects.create(
+    nro_transaccion=1,
+    descripcion='Transacción Inicial para el Período Inicial: Mobiliario de oficina $3,130.00; Equipo de cómputo y redes $15,330.00; Software y herramientas digitales $2,000.00; Papelería y suministros $72.50; Otros equipos $375.00; Capital $20,907.50',
+    fecha=fecha_hoy,
+    monto=Capital_social,
+    periodo=periodo_inicial
     )
+    #crear los movimientos asociados a la transaccion
+    #mobiliario de oficina
+    Movimiento.objects.create(
+    cuenta = CMobiliario,
+    tipo = True,  # Deudora
+    monto = Mobiliario_oficina,
+    transaccion = T_inicial
+    )
+    CMobiliario.debe += Mobiliario_oficina
+    CMobiliario.save()
+    #equipo
+    Movimiento.objects.create(
+    cuenta = CEquipo,
+    tipo = True,  # Deudora
+    monto = Equipo_computo_redes,
+    transaccion = T_inicial
+    )
+    CEquipo.debe += Equipo_computo_redes
+    CEquipo.save()
+    #software
+    Movimiento.objects.create(
+    cuenta = Csoftware,
+    tipo = True,  # Deudora
+    monto = SW_herramientas,
+    transaccion = T_inicial
+    )
+    Csoftware.debe += SW_herramientas
+    Csoftware.save()
+    #papeleria
+    Movimiento.objects.create(
+    cuenta = CPapeleria,
+    tipo = True,  # Deudora
+    monto = Papeleria_suministros,
+    transaccion = T_inicial
+    )
+    CPapeleria.debe += Papeleria_suministros
+    CPapeleria.save()
+    #otros equipos
+    Movimiento.objects.create(
+    cuenta = COtros,
+    tipo = True,  # Deudora
+    monto = Otros_equipos,
+    transaccion = T_inicial
+    )
+    COtros.debe += Otros_equipos
+    COtros.save()
+    #capital social
+    Movimiento.objects.create(
+    cuenta = CCapitalSocial,
+    tipo = False,  # Haber
+    monto = Capital_social,
+    transaccion = T_inicial
+    )
+    CCapitalSocial.debe += Capital_social
+    CCapitalSocial.save()
+    
+
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
         ('periodos', '0003_delete_saldocuenta'),
+        ('transacciones','0003_transaccion_nro_transaccion'),
+        ('cuentas','0003_cuenta_saldo_final')
     ]
 
     operations = [
+        migrations.RunPython(establecer_periodo_inicial),
     ]
