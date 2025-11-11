@@ -1,6 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}Puestos{% endblock %}
 {% load static %}
+{% block favicon %}
+<link rel="icon" type="image/png" sizes="16x16" href="{% static '/favico/puesto.png' %}">
+{% endblock %}
+
+{% block title %}Puestos{% endblock %}
+
 
 {% block content %}
 <link rel="stylesheet" href="{% static '/puestos.css' %}">

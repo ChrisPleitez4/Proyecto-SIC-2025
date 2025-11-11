@@ -3,6 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% block favicon %}
+    <!-- Favicon por defecto (puede ser uno en línea también) -->
+    <link type="image/png" sizes="16x16" rel="icon" href=".../icons8-home-m_rounded-16.png">
+    {% endblock %}
   <title>{% block title %}SIC 2025{% endblock %}</title>
 
   <!-- Bootstrap 5 CSS -->

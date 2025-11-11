@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
-
+{% block favicon %}
+<link rel="icon" type="image/png" sizes="16x16" href="{% static '/favico/periodo.png' %}">
+{% endblock %}
 {% block title %}Crear Periodo Contable{% endblock %}
 
 {% block content %}

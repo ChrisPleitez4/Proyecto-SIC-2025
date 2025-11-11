@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 
 {% load static %}
-
+{% block favicon %}
+<link rel="icon" type="image/png" sizes="16x16" href="{% static '/favico/ucp.png' %}">
+{% endblock %}
 {% block title %}Método de Estimación UCP - Completo{% endblock %}
 
 {% block content %}

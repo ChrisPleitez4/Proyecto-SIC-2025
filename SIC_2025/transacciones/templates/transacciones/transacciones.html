@@ -1,4 +1,9 @@
 {% extends "base.html" %}
+{% load static %}
+{% block favicon %}
+<link rel="icon" type="image/png" sizes="16x16" href="{% static '/favico/transaccion.png' %}">
+{% endblock %}
+
 {% block title %}Transacciones{% endblock %}
 
 {% block content %}
