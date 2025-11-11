@@ -6,6 +6,7 @@
   <style>
     .positivo { color: #198754; font-weight: 600; } /* verde */
     .negativo { color: #dc3545; font-weight: 600; } /* rojo */
+    .cero { color: #000000; font-weight: 600; }     /* negro */
 
     /* Columnas balance general con ancho fijo y uniforme */
     .balance-table th.codigo, .balance-table td.codigo { width: 20%; }
@@ -69,7 +70,7 @@
         <td class="text-end negativo">{{ total_gastos|floatformat:2 }}</td></tr>
 
       <tr class="table-success fw-bold"><td>Utilidad Bruta</td>
-        <td class="text-end {% if utilidad_bruta < 0 %}negativo{% else %}positivo{% endif %}">
+        <td class="text-end {% if utilidad_bruta < 0 %}negativo{% elif utilidad_bruta == 0 %}cero{% else %}positivo{% endif %}">
           {{ utilidad_bruta|floatformat:2|cut:"-" }}
         </td></tr>
     </tbody>
@@ -93,12 +94,12 @@
         <td class="text-end positivo">{{ capital_social|floatformat:2 }}</td></tr>
 
       <tr><td>Utilidad Bruta</td>
-        <td class="text-end {% if utilidad_bruta < 0 %}negativo{% else %}positivo{% endif %}">
+        <td class="text-end {% if utilidad_bruta < 0 %}negativo{% elif utilidad_bruta == 0 %}cero{% else %}positivo{% endif %}">
           {{ utilidad_bruta|floatformat:2|cut:"-" }}
         </td></tr>
 
       <tr class="table-success fw-bold"><td>Capital Final</td>
-        <td class="text-end {% if capital_final < 0 %}negativo{% else %}positivo{% endif %}">
+        <td class="text-end {% if capital_final < 0 %}negativo{% elif capital_final == 0 %}cero{% else %}positivo{% endif %}">
           {{ capital_final|floatformat:2 }}
         </td></tr>
     </tbody>
@@ -126,8 +127,19 @@
       <tr>
         <td class="codigo">{{ a.cod }}</td>
         <td class="nombre">{{ a.nombre }}</td>
-        <td class="saldo {% if a.saldo < 0 %}negativo{% else %}positivo{% endif %}">{{ a.saldo|floatformat:2 }}</td>
-        <td class="tipo_saldo"><span class="{% if a.tipo_saldo == 'Deudor' %}positivo{% else %}negativo{% endif %}">{{ a.tipo_saldo }}</span></td>
+        <td class="saldo 
+            {% if a.saldo < 0 %}negativo
+            {% elif a.saldo == 0 %}cero
+            {% else %}positivo{% endif %}">
+            {{ a.saldo|floatformat:2 }}
+        </td>
+        <td class="tipo_saldo">
+          <span class="{% if a.tipo_saldo == 'Deudor' %}positivo
+                      {% elif a.tipo_saldo == 'Saldo Cero' %}cero
+                      {% else %}negativo{% endif %}">
+            {{ a.tipo_saldo }}
+          </span>
+        </td>
       </tr>
       {% empty %}
       <tr><td colspan="4">No hay cuentas de activos</td></tr>
@@ -156,8 +168,19 @@
       <tr>
         <td class="codigo">{{ p.cod }}</td>
         <td class="nombre">{{ p.nombre }}</td>
-        <td class="saldo {% if p.saldo < 0 %}negativo{% else %}positivo{% endif %}">{{ p.saldo|floatformat:2 }}</td>
-        <td class="tipo_saldo"><span class="{% if p.tipo_saldo == 'Deudor' %}positivo{% else %}negativo{% endif %}">{{ p.tipo_saldo }}</span></td>
+        <td class="saldo 
+            {% if p.saldo < 0 %}negativo
+            {% elif p.saldo == 0 %}cero
+            {% else %}positivo{% endif %}">
+            {{ p.saldo|floatformat:2 }}
+        </td>
+        <td class="tipo_saldo">
+          <span class="{% if p.tipo_saldo == 'Deudor' %}positivo
+                      {% elif p.tipo_saldo == 'Saldo Cero' %}cero
+                      {% else %}negativo{% endif %}">
+            {{ p.tipo_saldo }}
+          </span>
+        </td>
       </tr>
       {% empty %}
       <tr><td colspan="4">No hay cuentas de pasivos</td></tr>
@@ -185,8 +208,19 @@
       <tr>
         <td class="codigo">3101</td>
         <td class="nombre">Capital</td>
-        <td class="saldo {% if total_patrimonio < 0 %}negativo{% else %}positivo{% endif %}">{{ total_patrimonio|floatformat:2 }}</td>
-        <td class="tipo_saldo"><span class="{% if tipo_saldo_capital == 'Deudor' %}positivo{% else %}negativo{% endif %}">{{ tipo_saldo_capital }}</span></td>
+        <td class="saldo 
+            {% if total_patrimonio < 0 %}negativo
+            {% elif total_patrimonio == 0 %}cero
+            {% else %}positivo{% endif %}">
+            {{ total_patrimonio|floatformat:2 }}
+        </td>
+        <td class="tipo_saldo">
+          <span class="{% if tipo_saldo_capital == 'Deudor' %}positivo
+                      {% elif tipo_saldo_capital == 'Saldo Cero' %}cero
+                      {% else %}negativo{% endif %}">
+            {{ tipo_saldo_capital }}
+          </span>
+        </td>
       </tr>
       <tr class="table-success fw-bold">
         <td colspan="2">Total Patrimonio</td>
@@ -202,9 +236,9 @@
     <p>Total Activos = Total Pasivos + Total Patrimonio</p>
     <p>{{ total_activos|floatformat:2 }} = {{ total_pasivos|floatformat:2 }} + {{ total_patrimonio|floatformat:2 }}</p>
     {% if diferencia_balance == 0 %}
-      <p class="text-success fw-bold">✅ El balance cuadra correctamente.</p>
+      <p class="text-success fw-bold">El balance cuadra correctamente.</p>
     {% else %}
-      <p class="text-danger fw-bold">⚠️ Descuadre: diferencia = {{ diferencia_balance|floatformat:2 }}</p>
+      <p class="text-danger fw-bold">Descuadre: diferencia = {{ diferencia_balance|floatformat:2 }}</p>
     {% endif %}
   </div>
 
