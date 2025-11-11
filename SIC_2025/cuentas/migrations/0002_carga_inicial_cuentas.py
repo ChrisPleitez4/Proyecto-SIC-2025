@@ -20,8 +20,11 @@ def crear_datos_iniciales(apps, schema_editor):
     act_nocorriente = SubTipoCuenta.objects.create(codSubTipoCuenta='12', nombreSubCuenta='Activo no corriente', tipoCuenta=activo)
     Cuenta.objects.bulk_create([
         Cuenta(codCuenta='1201', nombreCuenta='Gastos pagados por anticipado', subTipoCuenta=act_nocorriente),
-        Cuenta(codCuenta='1202', nombreCuenta='Equipo de cómputo y mobiliario', subTipoCuenta=act_nocorriente),
-        Cuenta(codCuenta='1203', nombreCuenta='Depreciación acumulada', subTipoCuenta=act_nocorriente),
+        Cuenta(codCuenta='1202', nombreCuenta='Equipo de cómputo y redes', subTipoCuenta=act_nocorriente),
+        Cuenta(codCuenta='1203', nombreCuenta='Mobiliario de oficina', subTipoCuenta=act_nocorriente),
+        Cuenta(codCuenta='1204', nombreCuenta='Papeleria y suministros de oficina', subTipoCuenta=act_nocorriente),
+        Cuenta(codCuenta='1205', nombreCuenta='Licencias de software', subTipoCuenta=act_nocorriente),
+        Cuenta(codCuenta='1206', nombreCuenta='Otros Equipos', subTipoCuenta=act_nocorriente),
     ])
 
     # --- PASIVO ---
@@ -56,9 +59,10 @@ def crear_datos_iniciales(apps, schema_editor):
         Cuenta(codCuenta='4101', nombreCuenta='Sueldos administrativos', subTipoCuenta=gastos_admin),
         Cuenta(codCuenta='4102', nombreCuenta='Servicios básicos', subTipoCuenta=gastos_admin),
         Cuenta(codCuenta='4103', nombreCuenta='Alquiler de oficina', subTipoCuenta=gastos_admin),
-        Cuenta(codCuenta='4104', nombreCuenta='Papelería y suministros', subTipoCuenta=gastos_admin),
-        Cuenta(codCuenta='4105', nombreCuenta='Depreciación de equipos de cómputo', subTipoCuenta=gastos_admin),
-        Cuenta(codCuenta='4106', nombreCuenta='Gastos de representación y marketing', subTipoCuenta=gastos_admin),
+        Cuenta(codCuenta='4104', nombreCuenta='Gastos de depreciacion', subTipoCuenta=gastos_admin),
+        Cuenta(codCuenta='4105', nombreCuenta='Gastos de representacion y marketing', subTipoCuenta=gastos_admin),
+        Cuenta(codCuenta='4106', nombreCuenta='Licencias y software utilizado a nivel corporativo', subTipoCuenta=gastos_admin),
+        Cuenta(codCuenta='4107', nombreCuenta='Pérdida por faltante de caja', subTipoCuenta=gastos_admin),
     ])
 
     gastos_oper = SubTipoCuenta.objects.create(codSubTipoCuenta='42', nombreSubCuenta='Gastos operativos', tipoCuenta=gastos)
@@ -68,6 +72,7 @@ def crear_datos_iniciales(apps, schema_editor):
         Cuenta(codCuenta='4203', nombreCuenta='Hosting y dominios', subTipoCuenta=gastos_oper),
         Cuenta(codCuenta='4204', nombreCuenta='Mantenimiento de equipos informáticos', subTipoCuenta=gastos_oper),
         Cuenta(codCuenta='4205', nombreCuenta='Capacitación técnica', subTipoCuenta=gastos_oper),
+        Cuenta(codCuenta='4206', nombreCuenta='Variacion de costos', subTipoCuenta=gastos_oper),
     ])
 
     # --- INGRESOS ---
