@@ -66,7 +66,7 @@ def transacciones_vista(request):
                     movimiento.transaccion = transaccion  # asignamos la FK
                     movimiento.save()
                     cuenta = movimiento.cuenta
-                    print("Cuenta:", cuenta.codCuenta, "¿Es ingreso?", cuenta.es_ingreso(), "Tipo:", movimiento.tipo)
+                    print("Cuenta:", cuenta.codCuenta, "¿Es ingreso?", cuenta.es_ingreso() ,"\n ","¿Es Compra?",cuenta.es_compra(), "\n","¿Es Anticipo?",cuenta.es_anticipo(),"\nTipo:", movimiento.tipo)
                     if cuenta.es_ingreso() and movimiento.tipo == False:
                         print(">>> ENTRÓ AL BLOQUE DE INGRESO CON IVA <<<")
                         monto = movimiento.monto
@@ -133,6 +133,23 @@ def transacciones_vista(request):
                             monto=total,
                             tipo=False  # Haber
                         )
+                    elif cuenta.es_anticipo() and movimiento.tipo == True:
+                        print(">>> ENTRÓ AL BLOQUE DE ANTICIPO A PROVEEDORES <<<")
+                        # Anticipo a Proveedores (Activo)
+                        monto = movimiento.monto
+                        cuenta.debe += movimiento.monto
+                        cuenta.save()
+                        
+                        #Entra a cuenta de desarrollo de software
+                        cDesarrollo = Cuenta.objects.get(codCuenta='5101')
+                        Movimiento.objects.create(
+                            cuenta=cDesarrollo,
+                            transaccion=transaccion,
+                            monto=monto,
+                            tipo=False  # Debe
+                        )
+                        cDesarrollo.haber += movimiento.monto
+                        cDesarrollo.save()
                     else:
                         print(">>> ENTRÓ AL BLOQUE NORNMAL <<<")
                         if movimiento.tipo:  # True = deudora

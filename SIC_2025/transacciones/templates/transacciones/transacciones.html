@@ -107,6 +107,8 @@
                 <div id="mensaje_compra_{{ t.id }}" class="form-text text-success fw-bold mt-2" style="display: none;">
                   Se ha detectado una compra de activos. Las cuentas de IVA y Caja se generarán automáticamente; solo registre esta cuenta.
                 </div>
+                <div id="mensaje_anticipo_{{ t.id }}" class="form-text text-success fw-bold mt-2" style="display: none;">
+                Esta transacción corresponde a la liquidación del anticipo del cliente. Ingrese el monto para aplicar la salida del pasivo y registrarlo como ingreso en la cuenta "Desarrollo de software a la medida".</div>
                 </div>
                 {% if movimiento_form.errors.cuenta %}
                   <div class="text-danger small">{{ movimiento_form.errors.cuenta.0 }}</div>
@@ -252,10 +254,21 @@ document.addEventListener('DOMContentLoaded', function() {
           mensajeDivC = modal.querySelector('.mensaje-cuenta');
         }
 
+        //Buscamos el mensaje de anticipo
+        let mensajeDivA = null;
+        if (transaccionId) {
+          mensajeDivA = modal.querySelector(`#mensaje_anticipo_${transaccionId}`);
+        }
+        // fallback: si no lo encontramos por id, buscar el contenedor general .mensaje-cuenta
+        if (!mensajeDivA) {
+          mensajeDivA = modal.querySelector('.mensaje-cuenta');
+        }
+
         console.log("📘 Cuenta seleccionada:", codCuenta);
         console.log("🧩 transaccionId:", transaccionId);
         console.log("🧩 mensajeDiv Ingreso encontrado:", mensajeDiv);
         console.log("🧩 mensajeDiv Compra encontrado:", mensajeDivC);
+        console.log("🧩 mensajeDiv Anticipo encontrado:", mensajeDivA);
 
         const tipoSelect = modal.querySelector(`#id_tipo_${transaccionId}`);
         let tipoValor = null;
@@ -320,7 +333,36 @@ document.addEventListener('DOMContentLoaded', function() {
             }
           }
         }
+
+        // IF PARA ANTICIPOS
+        if (codCuenta && codCuenta == '2102' && tipoValor === 'True') {
+            console.log("✅ Es Anticipo.");
+            if (mensajeDivC) {
+              // si mensajeDivC es el contenedor, inyectamos texto; si es el div específico, lo mostramos
+              if (mensajeDivA.id && mensajeDivA.id.startsWith('mensaje_anticipo_')) {
+                mensajeDivA.style.display = 'block';
+                mensajeDivA.style.visibility = 'visible';
+                mensajeDivA.style.opacity = '1';
+              } else {
+                // contenedor genérico -> asignar HTML (mantener estilo verde)
+                mensajeDivC.innerHTML = '<div class="form-text text-success fw-bold mt-2">Esta cuenta es de Anticipo y se registrara en cuenta de ingreso automaticamente.</div>';
+              }
+            } else {
+              console.warn("⚠️ No se encontró ningún elemento para mostrar el mensaje.");
+            }
+          } else {
+            console.log("❌ No es Anticipo.");
+            if (mensajeDivC) {
+              // ocultar: si es id específico, ocultar; si es contenedor, limpiar
+              if (mensajeDivA.id && mensajeDivA.id.startsWith('mensaje_anticipo_')) {
+                mensajeDivA.style.display = 'none';
+              } else {
+                mensajeDivA.innerHTML = '';
+              }
+            }
+          }
       };
+
       // Si ya se había seleccionado algo por defecto, ejecutar una vez para precargar el estado
       handleChange.call(select);
 

@@ -68,3 +68,6 @@ class Cuenta(models.Model):
     def es_compra(self):
         compras= ['1202', '1203', '1204', '1205', '1206'] # lista de códigos exactos
         return self.codCuenta in compras
+    
+    def es_anticipo(self):
+        return self.codCuenta == '2102'
