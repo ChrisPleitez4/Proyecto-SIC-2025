@@ -27,7 +27,7 @@ def estados_financieros(request):
     o para un periodo específico pasado por parámetro (periodo_id).
     """
     
-    # 1. Obtener Periodos Disponibles y Periodo a Analizar
+    #Obtener Periodos Disponibles y Periodo a Analizar
     periodos_disponibles = PeriodoContable.objects.all().order_by('-fecha_fin')
     
     if not periodos_disponibles.exists():
@@ -49,7 +49,7 @@ def estados_financieros(request):
     fecha_fin = periodo_activo.fecha_fin
     cuentas = Cuenta.objects.select_related('subTipoCuenta__tipoCuenta').all()
     
-    # 2. Buscar el periodo anterior
+    #Buscar el periodo anterior
     periodo_anterior = PeriodoContable.objects.filter(
         fecha_fin__lt=periodo_activo.fecha_inicio, activo=False
     ).order_by('-fecha_fin').first()
@@ -57,13 +57,11 @@ def estados_financieros(request):
     # Determinar si estamos en el primer período (sin período anterior)
     es_primer_periodo = not periodo_anterior
     
-    # -----------------------------
-    # 🔹 Calcular debe/haber con saldo inicial + movimientos del periodo
-    # -----------------------------
+    # Calcular debe/haber con saldo inicial + movimientos del periodo
     for cuenta in cuentas:
         tipo = cuenta.subTipoCuenta.tipoCuenta.codTipoCuenta[0]
         
-        # 2.1. Inicialización de Saldo Inicial
+        # Inicialización de Saldo Inicial
         saldo_inicial = Decimal('0.00')
         
         # Solo cargar saldo_final si NO es el primer periodo y NO es cuenta de resultado
@@ -71,11 +69,11 @@ def estados_financieros(request):
             # Si NO es cuenta de resultado Y SÍ hay un periodo anterior
             saldo_inicial = cuenta.saldo_final or Decimal('0.00')
 
-        # 2.2. Reiniciar debe y haber
+        #Reiniciar debe y haber
         cuenta.debe = Decimal('0.00')
         cuenta.haber = Decimal('0.00')
 
-        # 2.3. Cargar saldo inicial según naturaleza
+        # Cargar saldo inicial según naturaleza
         if tipo == '1':    # Activo → saldo deudor
             if saldo_inicial > 0:
                 cuenta.debe = saldo_inicial
@@ -87,7 +85,7 @@ def estados_financieros(request):
             elif saldo_inicial < 0:
                 cuenta.debe = abs(saldo_inicial)
 
-        # 2.4. Sumar movimientos del periodo
+        # Sumar movimientos del periodo
         movimientos = Movimiento.objects.filter(
             cuenta=cuenta,
             transaccion__fecha__range=[fecha_inicio, fecha_fin]
@@ -96,7 +94,7 @@ def estados_financieros(request):
         cuenta.debe += sum(m.monto for m in movimientos if m.tipo) or Decimal('0.00')
         cuenta.haber += sum(m.monto for m in movimientos if not m.tipo) or Decimal('0.00')
 
-        # 2.5. Cálculo del Saldo Final del Período (Clave para Estado de Resultados y Balance)
+        # Cálculo del Saldo Final del Período
         if tipo in ['1', '4']: # Activo y Gasto (Naturaleza Deudora)
             cuenta.saldo_calculado = cuenta.debe - cuenta.haber
         elif tipo in ['2', '3', '5']: # Pasivo, Capital e Ingreso (Naturaleza Acreedora)
@@ -113,9 +111,8 @@ def estados_financieros(request):
             cuenta.tipo_saldo_calculado = 'Saldo Cero'
 
 
-    # -----------------------------
-    # 🧾 Estado de Resultados 
-    # -----------------------------
+
+    # Estado de Resultados 
     ingresos = [c for c in cuentas if c.subTipoCuenta.tipoCuenta.codTipoCuenta.startswith('5')]
     gastos = [c for c in cuentas if c.subTipoCuenta.tipoCuenta.codTipoCuenta.startswith('4')]
 
@@ -128,9 +125,7 @@ def estados_financieros(request):
     impuesto = Decimal('0.00') 
     utilidad_neta = utilidad_bruta
 
-    # -----------------------------
-    # 💰 Estado de Capital (CORREGIDO: Elimina la doble suma)
-    # -----------------------------
+    # Estado de Capital
     capital_cuenta = next((c for c in cuentas if c.codCuenta == '3101'), None) 
     
     # Capital Inicial: Saldo de la cuenta 3101 al inicio del periodo (0 para periodo #1, o saldo final anterior)
@@ -143,24 +138,10 @@ def estados_financieros(request):
     # En el Periodo #1, esto es el monto de la Transacción #1.
     capital_social = capital_cuenta.saldo_calculado.quantize(Decimal('0.01')) if capital_cuenta else Decimal('0.00')
     
-    # Capital final: Capital Social al cierre + Utilidad Neta (o Bruta) del periodo
-    # Esto es la base del Balance General.
-    
-    # NOTA IMPORTANTE: Si capital_social ya incluye los movimientos del periodo, solo sumamos la utilidad.
+    # Si capital_social ya incluye los movimientos del periodo, solo sumamos la utilidad.
     capital_final = (capital_social + utilidad_bruta).quantize(Decimal('0.01'))
     
-    # --- Si necesitas separar el Capital social vs Utilidad acumulada para el Estado de Capital ---
-    # En el template:
-    # Capital Inicial (cargado)
-    # + Aportaciones/Retiros del Periodo (Movimientos)
-    # = Capital Social (al cierre antes de utilidad)
-    # + Utilidad Bruta
-    # = Capital Final (al cierre con utilidad)
-    # Ya que 'capital_social' aquí representa el saldo de la 3101 al cierre (antes de utilidad), lo usaremos.
-
-    # -----------------------------
-    # 📊 Balance General
-    # -----------------------------
+    # Balance General
     activos = [c for c in cuentas if c.subTipoCuenta.tipoCuenta.codTipoCuenta.startswith('1')]
     pasivos = [c for c in cuentas if c.subTipoCuenta.tipoCuenta.codTipoCuenta.startswith('2')]
 
@@ -188,9 +169,7 @@ def estados_financieros(request):
 
     diferencia_balance = total_activos - (total_pasivos + total_patrimonio)
 
-    # -----------------------------
-    # 🕓 Fechas y contexto
-    # -----------------------------
+    # Fechas y contexto
     fecha_inicio_str = fecha_inicio.strftime("%d de %B de %Y").capitalize()
     fecha_fin_str = fecha_fin.strftime("%d de %B de %Y").capitalize()
 
@@ -216,7 +195,6 @@ def estados_financieros(request):
         # Balance General
         "activos": activos_data,
         "pasivos": pasivos_data,
-        # Nota: Ya no se pasa 'capital', el capital_final va directo a total_patrimonio
         "total_activos": total_activos,
         "total_pasivos": total_pasivos,
         "total_patrimonio": total_patrimonio,

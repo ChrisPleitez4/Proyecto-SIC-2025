@@ -15,11 +15,22 @@ def libro_mayor(request):
     # Periodo seleccionado por GET (si no hay, usar último activo)
     periodo_id = request.GET.get('periodo')
     periodo = PeriodoContable.objects.filter(pk=periodo_id).first() if periodo_id else None
+    #Si no hay periodo seleccionado por GET, buscar un periodo por defecto
     if not periodo:
+        # Intentar encontrar el periodo activo
         periodo = PeriodoContable.objects.filter(activo=True).first()
+        
+        #Si no hay activo, buscar el último periodo cerrado
+        if not periodo:
+            periodo = PeriodoContable.objects.filter(activo=False).order_by('-fecha_fin').first()
+            
+            # Si se carga el último cerrado, mostramos una advertencia.
+            if periodo:
+                messages.warning(request, f"No hay un periodo activo. Mostrando el último periodo cerrado: {periodo.nombre}.")
 
+    #Si no hay NINGÚN periodo disponible (ni activo, ni cerrado)
     if not periodo:
-        messages.warning(request, "No hay periodos contables activos o cerrados disponibles.")
+        messages.warning(request, "No hay periodos contables activos o cerrados disponibles para mostrar.")
         return render(request, 'libromayor.html', {
             'data': [], 'periodos': periodos, 'periodo_seleccionado': None
         })

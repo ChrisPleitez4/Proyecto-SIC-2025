@@ -42,33 +42,32 @@ def calcular_costo(request):
         except json.JSONDecodeError:
             cifs_manuales = []
 
-        # --- 1. CÁLCULO DE MANO DE OBRA DIRECTA (MOD) Y CIF AUTOMÁTICOS ---
+        # CÁLCULO DE MANO DE OBRA DIRECTA (MOD) Y CIF AUTOMÁTICOS
 
         total_mod = Decimal('0')
         total_personas_directas = Decimal('0')
         total_cif_salarios_admin = Decimal('0')
 
         # Obtener los IDs (idPuesto) de los puestos que vienen del formulario
-        # Es crucial que el 'id' enviado desde el JS sea el idPuesto
         puesto_ids = [p.get('id') for p in puestos_json]
         
-        # Obtener los puestos del formulario desde la base de datos, usando idPuesto como PK
+        # Obtener los puestos del formulario desde la bd
         puestos_en_db = Puesto.objects.filter(idPuesto__in=puesto_ids)
 
         for p_data in puestos_json:
-            # Buscar el objeto Puesto real usando el idPuesto de la data
+            # Buscar el objeto Puesto real usando el idPuesto
             p_db = next((p for p in puestos_en_db if p.idPuesto == int(p_data.get('id'))), None)
             
             if not p_db:
                 continue
 
-            # Obtener datos de la solicitud
+            # Obtener datos
             cantidad = _to_decimal(p_data.get('cantidad'), '0')
             salario_hora = _to_decimal(p_data.get('salarioHora'), '0')
 
-            # CRUCIAL: Verificación del atributo administrativo para diferenciar MOD/CIF
+            # Verificación del atributo administrativo para diferenciar MOD/CIF
             if hasattr(p_db, 'administrativo') and p_db.administrativo:
-                # Si es administrativo, el salario MENSUAL va a CIF, no importa si se agregó manualmente
+                # Si es administrativo, el salario MENSUAL va a CIF
                 salario_mes = _to_decimal(p_db.salarioMesPuesto, '0')
                 total_cif_salarios_admin += salario_mes * cantidad
             else:
@@ -76,11 +75,8 @@ def calcular_costo(request):
                 total_mod += salario_hora * cantidad * horas_persona
                 total_personas_directas += cantidad
 
-        # --- 2. CIF FIJOS PREDEFINIDOS (Incluimos los administrativos también si no se eligieron) ---
+        #CIF FIJOS PREDEFINIDOS
         
-        # Para asegurar que TODOS los puestos administrativos existentes se sumen al CIF Mensual
-
-        # Buscamos todos los puestos administrativos que NO fueron incluidos ya en el cálculo anterior.
         ids_cif_admin_ya_incluidos = [p.idPuesto for p in puestos_en_db if p.administrativo]
         
         cif_admin_faltantes = Puesto.objects.filter(
@@ -90,13 +86,12 @@ def calcular_costo(request):
         )
         
         for p_admin in cif_admin_faltantes:
-            # Asumimos una cantidad de 1 si no se especificó lo contrario, o la cantidad real si la tuvieran
+            # Asumimos una cantidad de 1
             salario_mes = _to_decimal(p_admin.salarioMesPuesto, '0')
-            # Si no hay campo de cantidad en el modelo Puesto, asumimos 1 persona
             total_cif_salarios_admin += salario_mes * Decimal('1') 
 
 
-        # Simulación de CIF Fijos.
+        #CIF Fijos.
         cif_fijos_predefinidos = [
             {'descripcion': 'Depreciación de mobiliario', 'monto': Decimal('26.08')},
             {'descripcion': 'Depreciación de equipo de computo y red', 'monto': Decimal('224.88')},
@@ -114,16 +109,16 @@ def calcular_costo(request):
         
         total_cif_fijos = sum(c.get('monto') for c in cif_fijos_predefinidos)
 
-        # --- 3. SUMA DE TODOS LOS CIF ---
+        #SUMA DE TODOS LOS CIF
 
         total_cif_manuales = Decimal('0')
         for c in cifs_manuales:
             total_cif_manuales += _to_decimal(c.get('monto'), '0')
 
-        # Total CIF Mensual (Salarios Admin + Fijos + Manuales)
+        # Total CIF Mensual (Salarios + Fijos + Manuales)
         total_cif = total_cif_salarios_admin + total_cif_fijos + total_cif_manuales
 
-        # --- 4. CÁLCULOS FINALES ---
+        #CÁLCULOS FINALES 
         horas_mes_por_persona = Decimal('160')
         total_horas_mes_mod = total_personas_directas * horas_mes_por_persona
         
@@ -174,14 +169,11 @@ def calcular_costo(request):
 def guardar_anticipo(request):
     """
     Guarda el anticipo (25%) + IVA del precio de venta como una transacción,
-    previa validación de periodo contable activo.
     """
     if request.method != 'POST':
         return JsonResponse({
             'status': 'error',
             'error': 'Método no permitido'})
-
-    # --- 1. VALIDACIÓN DE PERÍODO ACTIVO ---
 
     # Validación de nombre del proyecto
     nombre_proyecto = request.POST.get('nombre_proyecto', '').strip()
@@ -198,7 +190,7 @@ def guardar_anticipo(request):
             'error': 'No se puede guardar el anticipo. No hay un período contable activo.'
         })
     
-    # --- 2. PROCESAMIENTO DE ANTICIPO ---
+    #PROCESAMIENTO DE ANTICIPO
 
     monto_anticipo = _to_decimal(request.POST.get('anticipo'), '0')
     monto_iva = _to_decimal(request.POST.get('iva'), '0')
@@ -213,13 +205,12 @@ def guardar_anticipo(request):
             'status': 'error',
             'error': 'Montos inválidos para registrar el anticipo.'})
 
-    # Cuentas involucradas (asegúrate que existan con esos nombres)
+    # Cuentas involucradas
     try:
         cuenta_caja = Cuenta.objects.get(nombreCuenta="Caja")
         cuenta_anticipo = Cuenta.objects.get(nombreCuenta="Anticipo de clientes")
         cuenta_iva = Cuenta.objects.get(nombreCuenta="Retenciones por pagar (Débito Fiscal)")
     except Cuenta.DoesNotExist:
-        # Se ha cambiado el manejo de la excepción para no exponer el nombre exacto de la cuenta faltante.
         return JsonResponse({
             'status': 'error',
             'error': 'Error en la configuración de cuentas contables.'})
@@ -229,7 +220,7 @@ def guardar_anticipo(request):
         f"Monto pendiente de pago: ${diferencia}."
     )
 
-    # --- 3. CREACIÓN DE TRANSACCIÓN Y MOVIMIENTOS ---
+    #CREACIÓN DE TRANSACCIÓN Y MOVIMIENTOS
     
     transaccion = Transaccion.objects.create(
         descripcion=descripcion,
@@ -244,7 +235,7 @@ def guardar_anticipo(request):
         cuenta=cuenta_caja,
         transaccion=transaccion
     )
-    # actualizar cuenta Aldair0t
+    # actualizar cuenta
     cuenta_caja.debe += monto_caja
     cuenta_caja.save()
 

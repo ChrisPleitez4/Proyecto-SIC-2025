@@ -18,7 +18,7 @@ def crear_periodo(request):
     if request.method == "POST":
         form = PeriodoContableForm(request.POST)
         if form.is_valid():
-            # 1️⃣ Verificar si hay un periodo activo
+            #Verificar si hay un periodo activo
             if PeriodoContable.objects.filter(activo=True).exists():
                 messages.error(
                     request,
@@ -26,12 +26,12 @@ def crear_periodo(request):
                 )
                 return redirect('lista_periodos')
 
-            # 2️⃣ Guardar el nuevo periodo
+            #Guardar el nuevo periodo
             nuevo_periodo = form.save(commit=False)
             nuevo_periodo.activo = True
             nuevo_periodo.save()
 
-            # 3️⃣ Trasladar saldos del periodo anterior (si existe)
+            # Trasladar saldos del periodo anterior (si existe)
             periodo_anterior = PeriodoContable.objects.filter(
                 fecha_fin__lt=nuevo_periodo.fecha_inicio
             ).order_by('-fecha_fin').first()
