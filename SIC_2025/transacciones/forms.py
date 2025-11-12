@@ -70,6 +70,8 @@ class MovimientoForm(forms.ModelForm):
         for campo in campos_requeridos:
             self.fields[campo].required = True
             self.fields[campo].error_messages = {'required': f'El campo {campo} es obligatorio. Porfavor, ingréselo.'}
+        
+        self.fields['cuenta'].queryset = self.fields['cuenta'].queryset.order_by('codCuenta')
     
     # Validación adicional para monto > 0
     def clean_monto(self):

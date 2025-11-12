@@ -1,9 +1,15 @@
 from django.shortcuts import render, redirect
-from .models import TipoCuenta
+from .models import TipoCuenta,Cuenta
 from .forms import CuentaForm
+from django.db.models import Prefetch
+
+
+
 
 def lista_cuentas(request):
-    tipos = TipoCuenta.objects.prefetch_related('subtipos__cuentas').all()
+    cuentas_ordenadas = Prefetch('cuentas', queryset=Cuenta.objects.order_by('codCuenta'))
+    #tipos = TipoCuenta.objects.prefetch_related('subtipos__cuentas').all()
+    tipos = TipoCuenta.objects.prefetch_related(Prefetch('subtipos__cuentas', queryset=Cuenta.objects.order_by('codCuenta')))
 
     if request.method == 'POST':
         form = CuentaForm(request.POST)
