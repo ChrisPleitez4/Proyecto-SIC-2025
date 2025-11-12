@@ -33,10 +33,10 @@ document.addEventListener("DOMContentLoaded", () => {
         container.innerHTML = '';
         
         const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-        const icon = type === 'success' ? '✅ Éxito: ' : '❌ Error: ';
+        const color = type === 'success' ? '#198754' : '#dc3545';
 
         container.classList.add('alert', alertClass, 'p-2', 'fade', 'show');
-        container.innerHTML = `${icon} ${message}`;
+        container.innerHTML = `<span style="color: ${color};"></span> ${message}`;
         
         messageTimeout = setTimeout(() => {
             container.classList.remove('show');
@@ -206,7 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const diferencia = parseFloat(document.getElementById("diferencia_pendiente").innerText);
 
         if (!nombreProyecto) {
-            showFeedback('error', 'El Nombre del proyecto es obligatorio.');
+            showFeedback('error', 'El nombre del proyecto es obligatorio.');
             return;
         }
         

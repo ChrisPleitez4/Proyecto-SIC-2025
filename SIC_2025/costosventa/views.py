@@ -180,7 +180,7 @@ def guardar_anticipo(request):
     if not nombre_proyecto:
         return JsonResponse({
             'status': 'error',
-            'error': 'El Nombre del proyecto no puede estar vacío.'
+            'error': 'El nombre del proyecto no puede estar vacío.'
         })
     
     # Buscamos si existe al menos un período contable con activo=True
