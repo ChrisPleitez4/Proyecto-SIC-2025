@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from .models import Puesto
+import re
 
 def registrar_puesto(request):
     # Datos fijos
@@ -15,6 +16,7 @@ def registrar_puesto(request):
     salario_nominal = ""
     eficiencia = ""
 
+
     contexto = {
         "resultado": None,
         "puestos": Puesto.objects.all(),
@@ -24,17 +26,29 @@ def registrar_puesto(request):
         "nombre": nombre,
         "salario": salario_nominal,
         "eficiencia": eficiencia,
+        "error": None,
     }
 
     if request.method == "POST":
         nombre = request.POST.get("nombre", "")
         salario_nominal = request.POST.get("salario", "")
         eficiencia = request.POST.get("eficiencia", "")
+        administrativo = request.POST.get("administrativo") == "on"
 
         # Guardamos los valores en el contexto para no perderlos
         contexto["nombre"] = nombre
         contexto["salario"] = salario_nominal
         contexto["eficiencia"] = eficiencia
+        contexto["administrativo"] = administrativo
+
+        if not re.match(r'^(?!\s*$)[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$', nombre):
+            contexto["error"] = "El formato del nombre del puesto no es válido."
+            return render(request, "registrar_puesto.html", contexto)
+        
+        # Validación de nombre único
+        if Puesto.objects.filter(nombrePuesto__iexact=nombre.strip()).exists():
+            contexto["error"] = "Ya existe un puesto con ese nombre."
+            return render(request, "registrar_puesto.html", contexto)
 
         if salario_nominal and eficiencia:
             salario_nominal = float(salario_nominal)
@@ -84,6 +98,7 @@ def registrar_puesto(request):
                     salarioHoraPuesto=costo_real_hora_eficiencia,
                     salarioDiarioPuesto=costo_real_dia_eficiencia,
                     salarioMesPuesto=costo_real_mes_eficiencia,
+                    administrativo=administrativo,
                 )
                 return redirect("registrar_puesto")
 

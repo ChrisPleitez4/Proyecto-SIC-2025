@@ -13,6 +13,12 @@
 <div class="form-container">
   <h2>Registro de Puesto</h2>
 
+  {% if error %}
+  <div class="error-box">
+    <strong>Error:</strong> {{ error }}
+  </div>
+  {% endif %}
+
   <form method="POST">
     {% csrf_token %}
     <div class="form-columns">
@@ -25,6 +31,11 @@
 
         <label>Eficiencia (0–1):</label>
         <input type="number" name="eficiencia" step="0.01" min="0.01" max="1" required value="{{ eficiencia }}" oninput="validarDecimales(this)">
+
+        <label style="display: inline-flex; align-items: center; gap: 5px;">
+          <input type="checkbox" name="administrativo" {% if administrativo %}checked{% endif %}>
+          Puesto administrativo
+        </label>
       </div>
 
       <div class="column info">
@@ -80,4 +91,5 @@ function validarDecimales(input) {
     }
 }
 </script>
+
 {% endblock %}

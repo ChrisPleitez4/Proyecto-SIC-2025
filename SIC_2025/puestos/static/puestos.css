@@ -124,3 +124,13 @@ input:focus {
 .puestos-section {
   margin-top: 40px;
 }
+
+.error-box {
+  background-color: #ffe5e5;
+  border: 1px solid #ff4d4d;
+  color: #a80000;
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
