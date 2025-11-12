@@ -132,6 +132,8 @@ def calcular_costo(request):
         utilidad = costo_produccion * Decimal('0.25')
         precio_venta = costo_produccion + utilidad
         anticipo = precio_venta * Decimal('0.25')
+        #precio de venta con iva 
+        precio_ventaIVA = precio_venta * Decimal('1.13')
         
         iva = anticipo * Decimal('0.13')
         anticipo_total = anticipo + iva
@@ -156,6 +158,7 @@ def calcular_costo(request):
             'costo_produccion': float(costo_produccion),
             'utilidad': float(utilidad),
             'precio_venta': float(precio_venta),
+            'precio_ventaIVA': float(precio_ventaIVA),
             'anticipo': float(anticipo),
             'iva': float(iva),
             'anticipo_total': float(anticipo_total),
@@ -196,6 +199,7 @@ def guardar_anticipo(request):
     monto_anticipo = _to_decimal(request.POST.get('anticipo'), '0')
     monto_iva = _to_decimal(request.POST.get('iva'), '0')
     precio_venta = _to_decimal(request.POST.get('precio_venta'), '0')
+    precio_ventaIVA = _to_decimal(request.POST.get('precio_ventaIVA'), '0')
     diferencia = _to_decimal(request.POST.get('diferencia'), '0')
 
     monto_caja = monto_anticipo + monto_iva
@@ -217,8 +221,9 @@ def guardar_anticipo(request):
             'error': 'Error en la configuración de cuentas contables.'})
 
     descripcion = (
-        f"Anticipo del proyecto: {nombre_proyecto} con precio de venta ${precio_venta}); "
-        f"Monto pendiente de pago: ${diferencia}."
+        f"Anticipo del proyecto: {nombre_proyecto} con precio de venta SIN IVA ${precio_venta} \n "
+        f"Monto Anticipo SIN IVA:${monto_anticipo}; \n"
+        f"Monto pendiente de pago SIN IVA: ${diferencia}."
     )
 
     #CREACIÓN DE TRANSACCIÓN Y MOVIMIENTOS

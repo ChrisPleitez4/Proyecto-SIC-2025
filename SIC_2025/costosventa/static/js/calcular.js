@@ -90,6 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("utilidad").innerText     = toMoney(data.utilidad);
             document.getElementById("costo_produccion").innerText = toMoney(data.costo_produccion);
             document.getElementById("precio_venta").innerText     = toMoney(data.precio_venta);
+            document.getElementById("precio_ventaIVA").innerText     = toMoney(data.precio_ventaIVA);
             document.getElementById("anticipo").innerText     = toMoney(data.anticipo); 
             document.getElementById("iva").innerText          = toMoney(data.iva);
             document.getElementById("anticipo_total").innerText = toMoney(data.anticipo_total);
@@ -203,6 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const iva = parseFloat(document.getElementById("iva").innerText);
         const anticipoTotal = parseFloat(document.getElementById("anticipo_total").innerText);
         const precioVenta = parseFloat(document.getElementById("precio_venta").innerText);
+        const precioVentaIVA = parseFloat(document.getElementById("precio_ventaIVA").innerText);
         const diferencia = parseFloat(document.getElementById("diferencia_pendiente").innerText);
 
         if (!nombreProyecto) {
@@ -227,6 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 iva: iva.toFixed(2),
                 anticipo_total: anticipoTotal.toFixed(2),
                 precio_venta: precioVenta.toFixed(2),
+                precio_ventaIVA: precioVentaIVA.toFixed(2),
                 diferencia: diferencia.toFixed(2)
             })
         })
