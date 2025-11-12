@@ -78,6 +78,6 @@ def cerrar_periodo(request, pk):
         # Método del modelo ya calcula saldos finales según naturaleza contable
         periodo.cerrar_periodo()
         messages.success(request, "Periodo cerrado correctamente y saldos finales calculados.")
-    except ValueError as e:
-        messages.error(request, str(e))
+    except Exception as e:
+        messages.error(request, "Error al cerrar el periodo: " + str(e))
     return redirect("lista_periodos")

@@ -49,8 +49,6 @@ class PeriodoContable(models.Model):
                 saldo = cuenta.debe - cuenta.haber
             elif tipo in ['2', '3']:
                 saldo = cuenta.haber - cuenta.debe
-            else:
-                saldo = Decimal('0.00')
 
             if cuenta.codCuenta == '3101':
                 saldo += utilidad_neta

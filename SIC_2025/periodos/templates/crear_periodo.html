@@ -12,9 +12,16 @@
     <h2>Crear Nuevo Periodo Contable</h2>
 
     {% if messages %}
+    <div class="messages-container">
         {% for message in messages %}
-    <div class="text-danger small mt-1 {{ message.tags }}">{{ message }}</div>
-    {% endfor %}
+        <div class="alert 
+                    {% if message.tags == 'success' %}alert-success
+                    {% elif message.tags == 'error' or message.tags == 'danger' %}alert-error
+                    {% else %}alert-info{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
     {% endif %}
 
     <form method="post" id="form-periodo">

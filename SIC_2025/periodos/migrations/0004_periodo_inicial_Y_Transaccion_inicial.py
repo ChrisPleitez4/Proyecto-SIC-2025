@@ -98,7 +98,7 @@ def establecer_periodo_inicial(apps, schema_editor):
     monto = Capital_social,
     transaccion = T_inicial
     )
-    CCapitalSocial.debe += Capital_social
+    CCapitalSocial.haber += Capital_social
     CCapitalSocial.save()
     
 

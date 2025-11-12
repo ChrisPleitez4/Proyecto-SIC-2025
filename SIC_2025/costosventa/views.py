@@ -124,9 +124,6 @@ def calcular_costo(request):
         total_cif = total_cif_salarios_admin + total_cif_fijos + total_cif_manuales
 
         # --- 4. CÁLCULOS FINALES ---
-        
-        # ... (El resto de cálculos de Tasa CIF, Costo Producción, etc. se mantiene igual)
-
         horas_mes_por_persona = Decimal('160')
         total_horas_mes_mod = total_personas_directas * horas_mes_por_persona
         
@@ -140,11 +137,11 @@ def calcular_costo(request):
         utilidad = costo_produccion * Decimal('0.25')
         precio_venta = costo_produccion + utilidad
         anticipo = precio_venta * Decimal('0.25')
-        iva = precio_venta * Decimal('0.13')
+        iva = anticipo * Decimal('0.13')
         anticipo_total = anticipo + iva
         diferencia = precio_venta - anticipo
 
-        # Retornar CIF para fines de trazabilidad
+        # Retornar CIF
         cifs_aplicados = []
         if total_cif_salarios_admin > 0:
              cifs_aplicados.append({'descripcion': 'Salarios de puestos administrativo', 'monto': float(total_cif_salarios_admin)})
@@ -170,7 +167,6 @@ def calcular_costo(request):
             'cifs_aplicados': cifs_aplicados 
         })
 
-    # --- GET (CORRECCIÓN 1: Filtrar puestos NO administrativos) ---
     # Solo los puestos de Mano de Obra Directa deben aparecer en el modal.
     puestos = Puesto.objects.filter(administrativo=False).order_by('nombrePuesto')
     return render(request, 'costosventa.html', {'puestos': puestos})
@@ -181,7 +177,9 @@ def guardar_anticipo(request):
     previa validación de periodo contable activo.
     """
     if request.method != 'POST':
-        return JsonResponse({'error': 'Método no permitido'}, status=405)
+        return JsonResponse({
+            'status': 'error',
+            'error': 'Método no permitido'})
 
     # --- 1. VALIDACIÓN DE PERÍODO ACTIVO ---
 
@@ -191,13 +189,14 @@ def guardar_anticipo(request):
         return JsonResponse({
             'status': 'error',
             'error': 'El Nombre del proyecto no puede estar vacío.'
-        }, status=400)
+        })
     
     # Buscamos si existe al menos un período contable con activo=True
     if not PeriodoContable.objects.filter(activo=True).exists():
         return JsonResponse({
+            'status': 'error',
             'error': 'No se puede guardar el anticipo. No hay un período contable activo.'
-        }, status=400)
+        })
     
     # --- 2. PROCESAMIENTO DE ANTICIPO ---
 
@@ -210,7 +209,9 @@ def guardar_anticipo(request):
 
     # Validación mínima
     if monto_caja <= 0 or monto_anticipo <= 0 or monto_iva < 0:
-        return JsonResponse({'error': 'Montos inválidos para registrar el anticipo.'}, status=400)
+        return JsonResponse({
+            'status': 'error',
+            'error': 'Montos inválidos para registrar el anticipo.'})
 
     # Cuentas involucradas (asegúrate que existan con esos nombres)
     try:
@@ -219,7 +220,9 @@ def guardar_anticipo(request):
         cuenta_iva = Cuenta.objects.get(nombreCuenta="Retenciones por pagar (Débito Fiscal)")
     except Cuenta.DoesNotExist:
         # Se ha cambiado el manejo de la excepción para no exponer el nombre exacto de la cuenta faltante.
-        return JsonResponse({'error': 'Error en la configuración de cuentas contables.'}, status=400)
+        return JsonResponse({
+            'status': 'error',
+            'error': 'Error en la configuración de cuentas contables.'})
 
     descripcion = (
         f"Anticipo del proyecto: {nombre_proyecto} con precio de venta ${precio_venta}); "
