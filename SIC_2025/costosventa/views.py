@@ -132,6 +132,7 @@ def calcular_costo(request):
         utilidad = costo_produccion * Decimal('0.25')
         precio_venta = costo_produccion + utilidad
         anticipo = precio_venta * Decimal('0.25')
+        
         iva = anticipo * Decimal('0.13')
         anticipo_total = anticipo + iva
         diferencia = precio_venta - anticipo
