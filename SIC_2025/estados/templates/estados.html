@@ -60,8 +60,30 @@
           </div>
 
   <div class="d-flex justify-content-end mb-3 no-print">
-    <button class="btn btn-outline-secondary" onclick="window.print()">🖨️ Imprimir estados financieros</button>
+    <button class="btn btn-outline-secondary" onclick="printWithDate()">🖨️ Imprimir estados financieros</button>
   </div>
+
+  <script>
+    function printWithDate() {
+        const originalTitle = document.title;
+
+        const now = new Date();
+        const formattedDate =
+            now.getFullYear() + "-" +
+            String(now.getMonth() + 1).padStart(2, '0') + "-" +
+            String(now.getDate()).padStart(2, '0') + "_" +
+            String(now.getHours()).padStart(2, '0') + "-" +
+            String(now.getMinutes()).padStart(2, '0') + "-" +
+            String(now.getSeconds()).padStart(2, '0');
+
+        document.title = `Estados Financieros - ${formattedDate}`;
+        window.print();
+
+        setTimeout(() => {
+            document.title = originalTitle;
+        }, 1000);
+    }
+  </script>
 
   <!-- ===== ESTADO DE RESULTADOS ===== -->
   <h2 class="text-center">TechXiliar S.A. de C.V.</h2>
