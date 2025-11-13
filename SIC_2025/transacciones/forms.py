@@ -46,11 +46,14 @@ class TransaccionForm(forms.ModelForm):
             return fecha  # ya se valida con required
         inicio_anio = periodo_activo.fecha_inicio
         limite_max = periodo_activo.fecha_fin
+        inicio_fmt = inicio_anio.strftime("%d de %B de %Y")
+        fin_fmt = limite_max.strftime("%d de %B de %Y")
+        
         nombre = periodo_activo.nombre
         if fecha < inicio_anio or fecha > limite_max:
             raise forms.ValidationError(
-                f"Periodo contable actual: {nombre} \n" 
-                f". Fecha inicio: {inicio_anio}, Fecha fin: {limite_max}, porfavor seleccione una fecha dentro de este rango.")
+                f"Periodo actual: {nombre}" 
+                f" La fecha debe estar entre Inicio Periodo:{inicio_fmt} y FIN periodo:{fin_fmt}.")
         return fecha
 
 class MovimientoForm(forms.ModelForm):

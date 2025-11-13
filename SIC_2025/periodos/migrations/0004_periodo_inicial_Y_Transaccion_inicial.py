@@ -10,13 +10,13 @@ def establecer_periodo_inicial(apps, schema_editor):
     Movimiento = apps.get_model('transacciones', 'Movimiento')
     Cuenta = apps.get_model('cuentas', 'Cuenta')
     
-    fecha_hoy = date.today()
-    fecha_fin = fecha_hoy + timedelta(days=5)
+    fecha_inicio = date(2025,11,1)
+    fecha_fin = date(2025,11,30)
     
     periodo_inicial, creado = PeriodoContable.objects.get_or_create(
         nombre='Periodo Inicial',
         defaults={
-            'fecha_inicio': fecha_hoy,
+            'fecha_inicio': fecha_inicio,
             'fecha_fin': fecha_fin
         }
     )
@@ -41,7 +41,7 @@ def establecer_periodo_inicial(apps, schema_editor):
     T_inicial = Transaccion.objects.create(
     nro_transaccion=1,
     descripcion='Transacción Inicial para el Período Inicial: Mobiliario de oficina $3,130.00; Equipo de cómputo y redes $15,330.00; Software y herramientas digitales $2,000.00; Papelería y suministros $72.50; Otros equipos $375.00; Capital $20,907.50',
-    fecha=fecha_hoy,
+    fecha=fecha_inicio,
     monto=Capital_social,
     periodo=periodo_inicial
     )
