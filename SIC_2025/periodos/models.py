@@ -65,6 +65,10 @@ class PeriodoContable(models.Model):
         self.activo = False
         self.fecha_cierre = timezone.now()
         self.fecha_fin = self.fecha_cierre
+        if self.fecha_inicio > hoy:
+            raise ValueError(
+                "No puede cerrarse antes de la fecha de inicio."
+            )
         self.save()
 
     # -----------------------------------------
