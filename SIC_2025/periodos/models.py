@@ -22,9 +22,6 @@ class PeriodoContable(models.Model):
     # 🔒 CIERRE DEL PERIODO CONTABLE
     # -----------------------------------------
     def cerrar_periodo(self):
-        """Cierra el periodo, calcula los saldos finales y utilidad neta."""
-        if timezone.now().date() < self.fecha_fin:
-            raise ValueError("No se puede cerrar el periodo antes de su fecha de fin.")
 
         from transacciones.models import Movimiento, Transaccion  # import local
 
@@ -58,6 +55,7 @@ class PeriodoContable(models.Model):
 
         self.activo = False
         self.fecha_cierre = timezone.now()
+        self.fecha_fin = self.fecha_cierre
         self.save()
 
     # -----------------------------------------
