@@ -36,4 +36,16 @@ class PeriodoContableForm(forms.ModelForm):
             if fecha_fin <= fecha_inicio:
                 self.add_error("fecha_fin", "La fecha de fin debe ser después de la fecha de inicio.")
 
+            # 🧩 Validar que el nuevo periodo no se solape con el anterior
+            ultimo_periodo = (
+                PeriodoContable.objects.filter(activo=False)
+                .order_by('-fecha_fin')
+                .first()
+            )
+            if ultimo_periodo and fecha_inicio <= ultimo_periodo.fecha_fin:
+                self.add_error(
+                    "fecha_inicio",
+                    f"La fecha de inicio debe ser posterior al cierre del último periodo ({ultimo_periodo.fecha_fin})."
+                )
+
         return cleaned_data

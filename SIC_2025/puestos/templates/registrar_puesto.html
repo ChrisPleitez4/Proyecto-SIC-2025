@@ -67,13 +67,14 @@
   <div class="puestos-section">
     <h3>Puestos Actuales</h3>
     <table class="styled-table">
-      <tr><th>Nombre</th><th>Salario por Hora</th><th>Salario por Día</th><th>Salario por Mes</th></tr>
+      <tr><th>Nombre</th><th>Salario por Hora</th><th>Salario por Día</th><th>Salario por Mes</th><th>Administrativo</th></tr>
       {% for p in puestos %}
       <tr>
         <td>{{ p.nombrePuesto }}</td>
         <td>${{ p.salarioHoraPuesto|floatformat:2 }}</td>
         <td>${{ p.salarioDiarioPuesto|floatformat:2 }}</td>
         <td>${{ p.salarioMesPuesto|floatformat:2 }}</td>
+        <td>{{ p.administrativo|yesno:"Si,No" }}</td>
       </tr>
       {% endfor %}
     </table>

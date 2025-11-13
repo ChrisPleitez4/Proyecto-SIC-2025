@@ -23,14 +23,23 @@ class PeriodoContable(models.Model):
     # -----------------------------------------
     def cerrar_periodo(self):
 
-        from transacciones.models import Movimiento, Transaccion  # import local
+        from transacciones.models import Movimiento, Transaccion
+
+        hoy = timezone.localdate()
+
+        #Validar que no existan transacciones posteriores a hoy
+        trans_posteriores = Movimiento.objects.filter(transaccion__fecha__gt=hoy)
+        if trans_posteriores.exists():
+            raise ValueError(
+                "Existen transacciones con fecha posterior a hoy."
+            )
+
 
         cuentas = Cuenta.objects.all()
 
         # calcular utilidad neta solo de este periodo
         ingresos = cuentas.filter(subTipoCuenta__tipoCuenta__codTipoCuenta__startswith='5')
         gastos = cuentas.filter(subTipoCuenta__tipoCuenta__codTipoCuenta__startswith='4')
-
         total_ingresos = sum((c.haber - c.debe) for c in ingresos)
         total_gastos = sum((c.debe - c.haber) for c in gastos)
         utilidad_neta = total_ingresos - total_gastos
